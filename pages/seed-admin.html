@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Setup Admin · Te-incluye</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      padding: 1.5rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-block-end: 1.5rem;
+    }
+    .logo img { width: 40px; height: 40px; border-radius: 8px; }
+    .logo span { font-size: 1.25rem; font-weight: 700; color: #4f46e5; }
+    h1 { font-size: 1.4rem; font-weight: 700; margin-block-end: .5rem; color: #0f172a; }
+    p.desc { font-size: .875rem; color: #64748b; margin-block-end: 1.5rem; line-height: 1.5; }
+    label { display: block; font-size: .875rem; font-weight: 600; color: #334155; margin-block-end: .4rem; }
+    input {
+      width: 100%; padding: .7rem 1rem; border: 1.5px solid #e2e8f0;
+      border-radius: 8px; font-size: 1rem; font-family: inherit;
+      margin-block-end: 1rem; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: #4f46e5; }
+    .hint { font-size: .78rem; color: #94a3b8; margin-block-start: -.75rem; margin-block-end: 1rem; }
+    button {
+      width: 100%; padding: .85rem; background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff; border: none; border-radius: 8px; font-size: 1rem;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      transition: opacity .15s, transform .15s;
+    }
+    button:hover { opacity: .92; transform: translateY(-1px); }
+    button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    #seed-log {
+      margin-block-start: 1.5rem;
+      padding: 1rem;
+      background: #0f172a;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: .8rem;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+    }
+    .seed-line { color: #94a3b8; padding: .1rem 0; }
+    .seed-success { color: #34d399; }
+    .seed-error   { color: #f87171; }
+
+    .warning {
+      background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px;
+      padding: .75rem 1rem; font-size: .8rem; color: #92400e;
+      margin-block-start: 1.5rem; line-height: 1.5;
+    }
+    .warning strong { display: block; margin-block-end: .25rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <img src="../assets/images/logo.png" alt="">
+      <span>Te-incluye</span>
+    </div>
+
+    <h1>Setup cuenta admin</h1>
+    <p class="desc">
+      Este script crea o promueve <strong>teincluye222@gmail.com</strong> como administrador
+      en Firebase Auth y Firestore. Úsalo una sola vez.
+    </p>
+
+    <label for="admin-pass">Contraseña para la cuenta admin</label>
+    <input type="password" id="admin-pass" placeholder="Mínimo 6 caracteres" minlength="6">
+    <p class="hint">Si la cuenta ya existe, ingresa su contraseña actual. Si no, esta será la nueva contraseña.</p>
+
+    <button id="btn-setup">Ejecutar setup</button>
+
+    <div id="seed-log"></div>
+
+    <div class="warning">
+      <strong>⚠️ Solo para uso local o primera configuración</strong>
+      Una vez completado, este archivo puede eliminarse o bloquearse
+      para que no sea accesible públicamente.
+    </div>
+  </div>
+
+  <script type="module">
+    import { setupAdmin } from '../assets/js/seed-admin.js';
+
+    const btn  = document.getElementById('btn-setup');
+    const pass = document.getElementById('admin-pass');
+    const log  = document.getElementById('seed-log');
+
+    btn.addEventListener('click', async () => {
+      const password = pass.value.trim();
+      if (password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        pass.focus();
+        return;
+      }
+
+      log.style.display = 'block';
+      btn.disabled = true;
+      btn.textContent = 'Ejecutando...';
+
+      const ok = await setupAdmin(password);
+
+      btn.textContent = ok ? '✅ Completado — ir al admin' : '❌ Hubo un error';
+      if (ok) {
+        btn.disabled = false;
+        btn.addEventListener('click', () => { window.location.href = 'admin.html'; }, { once: true });
+      }
+    });
+  </script>
+</body>
+</html>

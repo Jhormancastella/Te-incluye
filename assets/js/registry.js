@@ -1,9 +1,10 @@
 /**
- * registry.js - Registro de participantes en la comunidad Incluyeme
+ * registry.js - Registro de participantes en la comunidad Te-incluye
+ * Guarda en Firestore (colección 'registry')
  */
 
-import { Storage, DATA_KEYS } from './storage.js';
-import { isValidEmail, escapeHtml, showToast, generateId } from './utils.js';
+import { firestore } from './db.js';
+import { isValidEmail, escapeHtml, showToast } from './utils.js';
 
 export const Registry = {
   initialized: false,
@@ -11,17 +12,16 @@ export const Registry = {
   init() {
     if (this.initialized) return this;
     this.bindForm();
-    this.bindSuccessReset();
     this.initialized = true;
     return this;
   },
 
   bindForm() {
-    const form = document.getElementById('registroForm');
+    const form = document.getElementById('registry-form');
     if (!form) return;
 
     // Real-time email validation
-    const emailInput = document.getElementById('emailReg');
+    const emailInput = document.getElementById('registry-email');
     if (emailInput) {
       emailInput.addEventListener('blur', e => {
         if (e.target.value && !isValidEmail(e.target.value)) {
@@ -36,29 +36,29 @@ export const Registry = {
     form.addEventListener('submit', async e => {
       e.preventDefault();
 
-      const nombre    = document.getElementById('fullname')?.value.trim();
-      const email     = document.getElementById('emailReg')?.value.trim();
-      const telefono  = document.getElementById('phone')?.value.trim();
-      const barrio    = document.getElementById('barrio')?.value.trim();
-      const rol       = document.getElementById('rolParticipacion')?.value;
-      const discapacidad = document.getElementById('disabilityType')?.value;
-      const intereses = Array.from(document.querySelectorAll('#interesesGroup input:checked')).map(cb => cb.value);
-      const consent   = document.getElementById('privacyConsent')?.checked;
-
-      const feedback  = document.getElementById('formFeedback');
-      const submitBtn = document.getElementById('registroSubmit');
+      const nombre         = document.getElementById('registry-name')?.value.trim();
+      const email          = document.getElementById('registry-email')?.value.trim();
+      const rol            = document.getElementById('registry-rol')?.value || '';
+      const tipoDiscap     = document.getElementById('registry-discapacidad')?.value || '';
+      const consent        = form.querySelector('[name="consent"]')?.checked;
+      const submitBtn      = form.querySelector('[type="submit"]');
 
       const setError = (msg) => {
-        if (feedback) {
-          feedback.textContent = msg;
-          feedback.className = 'registro-feedback registro-feedback--error';
+        let feedback = document.getElementById('registry-feedback');
+        if (!feedback) {
+          feedback = document.createElement('div');
+          feedback.id = 'registry-feedback';
+          feedback.setAttribute('role', 'alert');
+          feedback.setAttribute('aria-live', 'polite');
+          submitBtn?.insertAdjacentElement('beforebegin', feedback);
         }
+        feedback.textContent = msg;
+        feedback.className = 'form-message error';
       };
 
-      // Validaciones
       if (!nombre || nombre.length < 2) {
         setError('Por favor ingresa tu nombre completo (mínimo 2 caracteres).');
-        document.getElementById('fullname')?.focus();
+        document.getElementById('registry-name')?.focus();
         return;
       }
       if (!email || !isValidEmail(email)) {
@@ -67,104 +67,67 @@ export const Registry = {
         return;
       }
       if (!consent) {
-        setError('Debes aceptar el uso de tus datos para continuar.');
-        document.getElementById('privacyConsent')?.focus();
+        setError('Debes aceptar la política de privacidad para continuar.');
+        form.querySelector('[name="consent"]')?.focus();
         return;
       }
 
-      // Limpiar error
-      if (feedback) { feedback.textContent = ''; feedback.className = 'registro-feedback'; }
+      const feedback = document.getElementById('registry-feedback');
+      if (feedback) { feedback.textContent = ''; feedback.className = 'form-message'; }
 
-      // Deshabilitar botón mientras guarda
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Guardando...';
       }
 
       const registro = {
-        id:          generateId(),
-        nombre:      escapeHtml(nombre),
-        email:       escapeHtml(email),
-        telefono:    escapeHtml(telefono || ''),
-        barrio:      escapeHtml(barrio || ''),
-        rol:         rol || '',
-        discapacidad: discapacidad || '',
-        intereses,
-        consent:     true,
-        fecha:       new Date().toISOString()
+        nombre:           nombre,
+        email:            email.toLowerCase(),
+        rol:              rol,
+        tipo_discapacidad: tipoDiscap,
+        consent:          true
       };
 
-      // Guardar en localStorage
-      const users = Storage.get(DATA_KEYS.USERS, []);
-      users.push(registro);
-      Storage.set(DATA_KEYS.USERS, users);
+      try {
+        // Guardar en Firestore (colección 'registry')
+        const id = await firestore.add('registry', registro);
 
-      // Mostrar estado de éxito
-      const formCard  = document.querySelector('.registro-form-card');
-      const successEl = document.getElementById('registroSuccess');
-      const successMsg = document.getElementById('registroSuccessMsg');
+        form.innerHTML = `
+          <div class="alert alert-success" role="status">
+            <span class="alert-icon" aria-hidden="true">✅</span>
+            <div class="alert-content">
+              <p class="alert-title">¡Registro exitoso!</p>
+              <p>Gracias, ${escapeHtml(nombre)}. Te contactaremos al correo ${escapeHtml(email)}.</p>
+            </div>
+          </div>
+        `;
 
-      if (formCard)  formCard.hidden  = true;
-      if (successEl) successEl.hidden = false;
-      if (successMsg) {
-        successMsg.textContent = `Gracias, ${nombre}. Tu registro fue guardado. Te contactaremos al correo ${email} con información relevante según tus intereses.`;
+        document.dispatchEvent(new CustomEvent('registry:newUser', { detail: { id, ...registro } }));
+      } catch (err) {
+        console.error('Error al guardar registro:', err);
+        setError('No se pudo guardar el registro. Por favor intenta de nuevo.');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-paper-plane" aria-hidden="true"></i> Enviar registro';
+        }
       }
-
-      form.reset();
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Registrarme en la comunidad';
-      }
-
-      document.dispatchEvent(new CustomEvent('registry:newUser', { detail: registro }));
-    });
-  },
-
-  bindSuccessReset() {
-    document.getElementById('registroNuevo')?.addEventListener('click', () => {
-      const formCard  = document.querySelector('.registro-form-card');
-      const successEl = document.getElementById('registroSuccess');
-      if (formCard)  formCard.hidden  = false;
-      if (successEl) successEl.hidden = true;
     });
   },
 
   // Para el panel admin
   getUsers(filters = {}) {
-    let users = Storage.get(DATA_KEYS.USERS, []);
-    if (filters.interes)      users = users.filter(u => u.intereses?.includes(filters.interes));
-    if (filters.discapacidad) users = users.filter(u => u.discapacidad === filters.discapacidad);
-    if (filters.rol)          users = users.filter(u => u.rol === filters.rol);
-    if (filters.dateFrom)     users = users.filter(u => new Date(u.fecha) >= new Date(filters.dateFrom));
-    return users;
+    return firestore.getAll('registry');
   },
 
   exportUsersCSV() {
-    const users = Storage.get(DATA_KEYS.USERS, []);
-    if (!users.length) { showToast('No hay registros para exportar', 'warning'); return; }
-
-    const headers = ['Fecha', 'Nombre', 'Email', 'Teléfono', 'Barrio', 'Rol', 'Discapacidad', 'Intereses'];
-    const rows = users.map(u => [
-      new Date(u.fecha).toLocaleString('es-CO'),
-      u.nombre, u.email, u.telefono || '',
-      u.barrio || '', u.rol || '',
-      u.discapacidad || 'No especificado',
-      (u.intereses || []).join('; ')
-    ]);
-
-    const csv = [headers, ...rows]
-      .map(row => row.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url;
-    a.download = `registros_incluyeme_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Registros exportados ✓');
+    // Delegado al panel admin via Firestore
+    showToast('Usa el panel admin para exportar registros', 'info');
   }
 };
+
+// Named export para compatibilidad con app.js
+export function initRegistry() {
+  return Registry.init();
+}
 
 export default Registry;

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mi perfil · Te-incluye">
+  <meta name="robots" content="noindex">
+  <title>Mi perfil · Te-incluye</title>
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .profile-hero {
+      background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);
+      padding-block: var(--space-12);
+      text-align: center;
+      color: #fff;
+    }
+
+    .profile-avatar-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-block-end: var(--space-4);
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .profile-avatar-upload {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      min-height: auto;
+      padding: 0;
+      transition: background var(--transition-fast);
+    }
+
+    .profile-avatar-upload:hover { background: var(--color-primary-hover); }
+
+    #avatar-file-input { display: none; }
+
+    .profile-name {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: #fff;
+      margin-block-end: var(--space-1);
+    }
+
+    .profile-email {
+      font-size: var(--font-size-sm);
+      color: rgba(255,255,255,0.8);
+    }
+
+    .profile-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-block-start: var(--space-2);
+      padding: var(--space-1) var(--space-3);
+      background: rgba(255,255,255,0.2);
+      border-radius: var(--border-radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: #fff;
+    }
+
+    .profile-content {
+      max-width: 640px;
+      margin-inline: auto;
+      padding: var(--space-8) var(--space-4);
+    }
+
+    .profile-card {
+      background: var(--color-bg-primary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-xl);
+      padding: var(--space-6);
+      margin-block-end: var(--space-6);
+    }
+
+    .profile-card-title {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      margin-block-end: var(--space-5);
+      padding-block-end: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-text-primary);
+    }
+
+    .profile-card-title i {
+      color: var(--color-primary);
+    }
+
+    .profile-save-msg {
+      display: none;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--border-radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      margin-block-end: var(--space-4);
+    }
+
+    .profile-save-msg.success {
+      background: var(--color-success-light);
+      color: var(--color-success);
+      border-left: 3px solid var(--color-success);
+    }
+
+    .profile-save-msg.error {
+      background: var(--color-error-light);
+      color: var(--color-error);
+      border-left: 3px solid var(--color-error);
+    }
+
+    .upload-progress {
+      display: none;
+      margin-block-start: var(--space-2);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        <!-- Navegación principal -->
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html"  class="nav-link">Inicio</a>
+          <a href="galeria.html"   class="nav-link">Galería</a>
+          <a href="videos.html"    class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link">Proyectos</a>
+          <a href="recursos.html"  class="nav-link">Recursos</a>
+          <a href="historia.html"  class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+                  aria-label="Cambiar tema" aria-pressed="false">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+
+        <!-- Grupo derecho: hamburger + auth juntos -->
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <!-- Widget de usuario -->
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+
+    <!-- Hero del perfil -->
+    <section class="profile-hero" id="profile-hero" aria-label="Información de perfil">
+      <div class="profile-avatar-wrapper">
+        <div class="profile-avatar" id="profile-avatar-display" aria-hidden="true">?</div>
+        <button class="profile-avatar-upload" id="btn-upload-avatar"
+                aria-label="Cambiar foto de perfil" title="Cambiar foto">
+          <i class="fas fa-camera" aria-hidden="true"></i>
+        </button>
+        <input type="file" id="avatar-file-input" accept="image/*" aria-label="Seleccionar foto">
+      </div>
+      <h1 class="profile-name" id="profile-display-name">Cargando...</h1>
+      <p class="profile-email" id="profile-display-email"></p>
+      <span class="profile-role-badge" id="profile-role-badge">
+        <i class="fas fa-user" aria-hidden="true"></i> Usuario
+      </span>
+      <p class="upload-progress" id="upload-progress">
+        <span class="spinner" aria-hidden="true"></span> Subiendo foto...
+      </p>
+    </section>
+
+    <div class="profile-content">
+
+      <!-- Editar perfil -->
+      <div class="profile-card">
+        <h2 class="profile-card-title">
+          <i class="fas fa-user-edit" aria-hidden="true"></i> Editar perfil
+        </h2>
+
+        <div id="profile-msg" class="profile-save-msg" role="status" aria-live="polite"></div>
+
+        <form id="form-profile" novalidate>
+          <div class="form-group">
+            <label for="profile-name" class="form-label form-label-required">Nombre completo</label>
+            <input type="text" id="profile-name" name="name" class="form-input"
+                   required autocomplete="name" placeholder="Tu nombre">
+          </div>
+
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label for="profile-cedula" class="form-label">Número de cédula</label>
+              <input type="text" id="profile-cedula" name="cedula" class="form-input"
+                     inputmode="numeric" placeholder="Ej: 1234567890">
+            </div>
+            <div class="form-group">
+              <label for="profile-ubicacion" class="form-label">Municipio / Ubicación</label>
+              <input type="text" id="profile-ubicacion" name="ubicacion" class="form-input"
+                     placeholder="Ej: Tibú, Norte de Santander">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-discapacidad" class="form-label">Tipo de discapacidad</label>
+            <select id="profile-discapacidad" name="discapacidad" class="form-input">
+              <option value="">Selecciona una opción</option>
+              <option value="fisica">Física / Motriz</option>
+              <option value="visual">Visual</option>
+              <option value="auditiva">Auditiva</option>
+              <option value="cognitiva">Cognitiva / Intelectual</option>
+              <option value="psicosocial">Psicosocial / Mental</option>
+              <option value="multiple">Múltiple</option>
+              <option value="ninguna">Ninguna / Familiar / Aliado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-bio" class="form-label">Sobre mí</label>
+            <textarea id="profile-bio" name="bio" class="form-textarea" rows="3"
+                      placeholder="Cuéntanos algo sobre ti..." maxlength="300"></textarea>
+            <small class="form-hint"><span id="bio-count">0</span>/300 caracteres</small>
+          </div>
+
+          <div style="display:flex; gap:var(--space-3); justify-content:flex-end; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" id="btn-save-profile">
+              <i class="fas fa-save" aria-hidden="true"></i> Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Info de cuenta (solo lectura) -->
+      <div class="profile-card">
+        <h2 class="profile-card-title">
+          <i class="fas fa-shield-alt" aria-hidden="true"></i> Información de cuenta
+        </h2>
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input type="email" class="form-input" id="account-email" readonly
+                 style="background:var(--color-bg-secondary);cursor:default;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Miembro desde</label>
+          <input type="text" class="form-input" id="account-since" readonly
+                 style="background:var(--color-bg-secondary);cursor:default;">
+        </div>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          Para cambiar tu contraseña, usa la opción "¿Olvidaste tu contraseña?" en la
+          <a href="login.html">página de ingreso</a>.
+        </p>
+      </div>
+
+      <!-- Cerrar sesión -->
+      <div style="text-align:center; padding-block-end: var(--space-8);">
+        <button class="btn btn-ghost" id="btn-logout-profile"
+                style="color:var(--color-error);">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Corporación Te-incluye · Inclusión social</p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import {
+      initUserAuth, UserState,
+      updateUserProfile, uploadProfilePhoto, logoutUser,
+      authErrorMessage
+    } from '../assets/js/user-auth.js';
+    import { auth, onAuthStateChanged } from '../assets/js/firebase-config.js';
+    import { escapeHtml } from '../assets/js/utils.js';
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Redirigir si no está logueado
+    onAuthStateChanged(auth, (user) => {
+      if (!user) window.location.href = 'login.html';
+    });
+
+    // Inicializar auth (widget en header)
+    initUserAuth();
+
+    // Poblar formulario cuando el perfil esté listo
+    document.addEventListener('auth:changed', ({ detail }) => {
+      const { user, profile } = detail;
+      if (!user) return;
+
+      // Hero
+      const nameEl   = document.getElementById('profile-display-name');
+      const emailEl  = document.getElementById('profile-display-email');
+      const avatarEl = document.getElementById('profile-avatar-display');
+      const roleEl   = document.getElementById('profile-role-badge');
+
+      const name  = profile?.name || user.displayName || 'Usuario';
+      const photo = profile?.photoURL || user.photoURL || '';
+      const role  = profile?.role || 'user';
+
+      nameEl.textContent  = name;
+      emailEl.textContent = user.email;
+      roleEl.innerHTML    = role === 'admin'
+        ? '<i class="fas fa-crown" aria-hidden="true"></i> Administrador'
+        : '<i class="fas fa-user" aria-hidden="true"></i> Usuario';
+
+      if (photo) {
+        avatarEl.innerHTML = `<img src="${photo}" alt="${escapeHtml(name)}"
+          style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      } else {
+        avatarEl.textContent = name.charAt(0).toUpperCase();
+      }
+
+      // Formulario
+      document.getElementById('profile-name').value         = name;
+      document.getElementById('profile-bio').value          = profile?.bio          || '';
+      document.getElementById('profile-cedula').value       = profile?.cedula       || '';
+      document.getElementById('profile-ubicacion').value    = profile?.ubicacion    || '';
+      document.getElementById('profile-discapacidad').value = profile?.discapacidad || '';
+      updateBioCount();
+
+      // Info cuenta
+      document.getElementById('account-email').value = user.email;
+      const since = profile?.createdAt?.toDate?.() || new Date();
+      document.getElementById('account-since').value =
+        since.toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+    });
+
+    // Contador bio
+    const bioInput = document.getElementById('profile-bio');
+    const bioCount = document.getElementById('bio-count');
+    function updateBioCount() {
+      bioCount.textContent = bioInput.value.length;
+    }
+    bioInput.addEventListener('input', updateBioCount);
+
+    // Guardar perfil
+    document.getElementById('form-profile').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-profile');
+      const msg = document.getElementById('profile-msg');
+
+      msg.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Guardando...';
+
+      try {
+        await updateUserProfile({
+          name:         e.target.name.value.trim(),
+          bio:          e.target.bio.value.trim(),
+          cedula:       e.target.cedula.value.trim(),
+          ubicacion:    e.target.ubicacion.value.trim(),
+          discapacidad: e.target.discapacidad.value
+        });
+        msg.className = 'profile-save-msg success';
+        msg.textContent = '✅ Perfil actualizado correctamente';
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 4000);
+      } catch (err) {
+        msg.className = 'profile-save-msg error';
+        msg.textContent = authErrorMessage(err);
+        msg.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save" aria-hidden="true"></i> Guardar cambios';
+      }
+    });
+
+    // Subir foto
+    document.getElementById('btn-upload-avatar').addEventListener('click', () => {
+      document.getElementById('avatar-file-input').click();
+    });
+
+    document.getElementById('avatar-file-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const progress = document.getElementById('upload-progress');
+      progress.style.display = 'block';
+
+      try {
+        const url = await uploadProfilePhoto(file);
+        const avatarEl = document.getElementById('profile-avatar-display');
+        const name = UserState.profile?.name || 'Usuario';
+        avatarEl.innerHTML = `<img src="${url}" alt="${escapeHtml(name)}"
+          style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      } catch (err) {
+        alert(authErrorMessage(err));
+      } finally {
+        progress.style.display = 'none';
+        e.target.value = '';
+      }
+    });
+
+    // Logout
+    document.getElementById('btn-logout-profile').addEventListener('click', async () => {
+      await logoutUser();
+      window.location.href = '../index.html';
+    });
+  </script>
+
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+
+</body>
+</html>

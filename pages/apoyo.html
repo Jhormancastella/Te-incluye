@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Formulario de solicitud de apoyo personalizado. Si el usuario está autenticado se pre‑rellena con su información y el mensaje se envía por WhatsApp.">
+  <title>Solicitar Apoyo · Te‑incluye</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te‑incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text"><span class="logo-title">Te‑incluye</span><span class="logo-slogan">Inclusión que transforma</span></span>
+        </a>
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link">Proyectos</a>
+          <a href="recursos.html" class="nav-link">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema"><span class="toggle-icon" aria-hidden="true">🌙</span></button>
+        </nav>
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="primary-nav"><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="section" style="padding-block-start: 4rem;" aria-labelledby="apoyo-title">
+      <div class="container">
+        <h1 id="apoyo-title" class="section-title" style="text-align:center; margin-bottom: var(--space-6);">Solicitar Apoyo Personalizado</h1>
+        <form id="support-form" class="card" style="max-width:600px; margin:auto; padding: var(--space-6);">
+          <div class="form-group">
+            <label for="name" class="form-label">Nombre completo</label>
+            <input type="text" id="name" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input type="email" id="email" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="phone" class="form-label">Teléfono (opcional)</label>
+            <input type="tel" id="phone" class="form-input" placeholder="+57 ...">
+          </div>
+          <div class="form-group">
+            <label for="message" class="form-label">¿En qué podemos ayudarte?</label>
+            <textarea id="message" class="form-input" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+            <i class="fas fa-paper-plane" aria-hidden="true"></i> Enviar por WhatsApp
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Te‑incluye</h4>
+          <p>Construyendo una sociedad más inclusiva, una historia a la vez.</p>
+          <a href="mailto:teincluye222@gmail.com" class="footer-email"><i class="fas fa-envelope" aria-hidden="true"></i> teincluye222@gmail.com</a>
+        </div>
+        <div class="footer-section">
+          <h4>Navegación</h4>
+          <ul class="footer-links">
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="galeria.html">Galería</a></li>
+            <li><a href="videos.html">Videos</a></li>
+            <li><a href="proyectos.html">Proyectos</a></li>
+            <li><a href="recursos.html">Recursos</a></li>
+            <li><a href="historia.html">Historia</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Recursos</h4>
+          <ul class="footer-links">
+            <li><a href="#">Guías de accesibilidad</a></li>
+            <li><a href="#">Directorio de servicios</a></li>
+            <li><a href="admin.html">Panel administrativo</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Corporación Te-incluye · <small>Inclusión social</small></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts principales -->
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module" src="../assets/js/user-auth.js"></script>
+<script type="module">
+     import { isLoggedIn, getCurrentUser, getCurrentProfile, initUserAuth, UserState } from '../assets/js/user-auth.js';
+
+     document.addEventListener('DOMContentLoaded', () => {
+       // Esperar a que auth esté listo
+       if (!UserState.user) {
+         initUserAuth();
+       }
+     });
+
+     document.addEventListener('auth:changed', ({ detail }) => {
+       const { user, profile } = detail;
+       if (!user) {
+         // No hay sesión, redirigir al registro/login con retorno a apoyo
+         window.location.href = '../pages/login.html?mode=register&next=apoyo.html';
+         return;
+       }
+       // Pre‑rellenar campos con datos de usuario
+       const nameInput = document.getElementById('name');
+       const emailInput = document.getElementById('email');
+       if (nameInput) nameInput.value = profile?.name || user.displayName || '';
+       if (emailInput) emailInput.value = user.email || '';
+     });
+
+    const form = document.getElementById('support-form');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const mensaje = document.getElementById('message').value.trim();
+        const whatsapp = '3229135021';
+        const text = `Hola, necesito apoyo personalizado:%0ANombre: ${name}%0AEmail: ${email}%0ATeléfono: ${phone}%0AMensaje: ${mensaje}`;
+        const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+      });
+    }
+  </script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

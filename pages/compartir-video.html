@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Comparte un video inspirador sobre inclusión, accesibilidad o discapacidad con la comunidad de Te-incluye.">
+  <title>Compartir un video · Te-incluye</title>
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <a href="#main" class="skip-link">
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
+  </a>
+
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link active">Videos</a>
+          <a href="proyectos.html" class="nav-link">Proyectos</a>
+          <a href="recursos.html" class="nav-link">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+
+    <!-- Hero compacto -->
+    <section class="hero" style="padding-block: 3rem 2rem;">
+      <div class="container">
+        <div class="hero-content">
+          <p style="font-size:.9rem;color:var(--color-text-secondary);margin-bottom:.5rem;">
+            <a href="videos.html" style="color:var(--color-primary);text-decoration:none;">
+              <i class="fas fa-arrow-left" aria-hidden="true"></i> Volver a Videos
+            </a>
+          </p>
+          <h1 class="hero-title">Compartir un video</h1>
+          <p class="hero-subtitle">
+            ¿Tienes un video inspirador sobre inclusión, accesibilidad o discapacidad?
+            Cuéntanos y lo evaluamos para publicarlo en Corporación Te-incluye.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulario -->
+    <section class="section" style="padding-block-start:0;" aria-labelledby="form-title">
+      <div class="container">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:2.5rem;align-items:start;max-width:960px;margin:auto;">
+
+          <!-- Form card -->
+          <form id="form-video" class="card" style="padding:var(--space-6);" novalidate>
+            <h2 id="form-title" class="section-title" style="margin-bottom:var(--space-5);font-size:1.25rem;">
+              Datos de tu propuesta
+            </h2>
+
+            <div class="form-group">
+              <label for="cv-nombre" class="form-label">
+                Nombre completo <span style="color:var(--color-error)" aria-hidden="true">*</span>
+              </label>
+              <input type="text" id="cv-nombre" class="form-input" placeholder="Ej. María García" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cv-email" class="form-label">Correo electrónico</label>
+              <input type="email" id="cv-email" class="form-input" placeholder="correo@ejemplo.com">
+            </div>
+
+            <div class="form-group">
+              <label for="cv-url" class="form-label">
+                URL del video <span style="color:var(--color-error)" aria-hidden="true">*</span>
+              </label>
+              <input type="url" id="cv-url" class="form-input" placeholder="https://youtube.com/watch?v=...">
+              <small style="color:var(--color-text-secondary);font-size:.8rem;">YouTube, Vimeo u otra plataforma</small>
+            </div>
+
+            <div class="form-group">
+              <label for="cv-categoria" class="form-label">Categoría</label>
+              <select id="cv-categoria" class="form-input">
+                <option value="Educación">Educación</option>
+                <option value="Deportes">Deportes</option>
+                <option value="Salud">Salud</option>
+                <option value="Empleo">Empleo</option>
+                <option value="Eventos">Eventos</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cv-descripcion" class="form-label">¿Por qué debería incluirse?</label>
+              <textarea id="cv-descripcion" class="form-input" rows="4"
+                placeholder="Cuéntanos brevemente de qué trata el video y su relevancia para la comunidad..."></textarea>
+            </div>
+
+            <p id="cv-error" role="alert" style="color:var(--color-error);font-size:.85rem;min-height:1.2em;margin-bottom:.5rem;"></p>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+              <i class="fab fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp
+            </button>
+          </form>
+
+          <!-- Info lateral -->
+          <aside aria-label="Información del proceso">
+            <div class="card" style="padding:var(--space-5);margin-bottom:1.25rem;">
+              <h3 style="font-size:1rem;font-weight:700;margin-bottom:var(--space-4);display:flex;align-items:center;gap:.5rem;">
+                <i class="fas fa-circle-info" style="color:var(--color-primary)"></i> ¿Cómo funciona?
+              </h3>
+              <ol style="padding-left:1.25rem;display:flex;flex-direction:column;gap:.75rem;font-size:.9rem;color:var(--color-text-secondary);">
+                <li>Completa el formulario con los datos de tu video.</li>
+                <li>Tu propuesta llega a nuestro equipo por WhatsApp.</li>
+                <li>Revisamos que cumpla los criterios de inclusión.</li>
+                <li>Si es aprobado, lo publicamos en nuestro sitio web.</li>
+              </ol>
+            </div>
+
+            <div class="card" style="padding:var(--space-5);">
+              <h3 style="font-size:1rem;font-weight:700;margin-bottom:var(--space-4);display:flex;align-items:center;gap:.5rem;">
+                <i class="fas fa-check-circle" style="color:var(--color-success)"></i> Criterios de selección
+              </h3>
+              <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:.6rem;font-size:.875rem;color:var(--color-text-secondary);">
+                <li style="display:flex;gap:.5rem;">
+                  <i class="fas fa-check" style="color:var(--color-success);margin-top:.2rem;flex-shrink:0"></i>
+                  <span>Contenido sobre inclusión o discapacidad</span>
+                </li>
+                <li style="display:flex;gap:.5rem;">
+                  <i class="fas fa-check" style="color:var(--color-success);margin-top:.2rem;flex-shrink:0"></i>
+                  <span>Mensaje positivo e inspirador</span>
+                </li>
+                <li style="display:flex;gap:.5rem;">
+                  <i class="fas fa-check" style="color:var(--color-success);margin-top:.2rem;flex-shrink:0"></i>
+                  <span>Audio y/o subtítulos en español</span>
+                </li>
+                <li style="display:flex;gap:.5rem;">
+                  <i class="fas fa-check" style="color:var(--color-success);margin-top:.2rem;flex-shrink:0"></i>
+                  <span>Contenido de libre acceso</span>
+                </li>
+              </ul>
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Te-incluye</h4>
+          <p style="color:var(--color-text-secondary);font-size:var(--font-size-sm);">
+            Construyendo una sociedad más inclusiva, una historia a la vez.
+          </p>
+        </div>
+        <div class="footer-section">
+          <h4>Navegación</h4>
+          <ul class="footer-links">
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="galeria.html">Galería</a></li>
+            <li><a href="videos.html">Videos</a></li>
+            <li><a href="proyectos.html">Proyectos</a></li>
+            <li><a href="historia.html">Historia</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Recursos</h4>
+          <ul class="footer-links">
+            <li><a href="#">Guías de accesibilidad</a></li>
+            <li><a href="#">Directorio de servicios</a></li>
+            <li><a href="admin.html">Panel administrativo</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>
+          © <span id="year"></span> Te-incluye ·
+          <a href="mailto:teincluye222@gmail.com" style="color:var(--color-primary);text-decoration:none;">
+            <i class="fas fa-envelope" aria-hidden="true"></i> teincluye222@gmail.com
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module">
+    import { initUserAuth } from '../assets/js/user-auth.js';
+    initUserAuth();
+  </script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('form-video').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const error = document.getElementById('cv-error');
+      error.textContent = '';
+
+      const nombre      = document.getElementById('cv-nombre').value.trim();
+      const email       = document.getElementById('cv-email').value.trim();
+      const url         = document.getElementById('cv-url').value.trim();
+      const categoria   = document.getElementById('cv-categoria').value;
+      const descripcion = document.getElementById('cv-descripcion').value.trim();
+
+      if (!nombre) { error.textContent = 'El nombre completo es obligatorio.'; document.getElementById('cv-nombre').focus(); return; }
+      if (!url)    { error.textContent = 'La URL del video es obligatoria.';   document.getElementById('cv-url').focus();    return; }
+
+      const mensaje = [
+        '📹 *Propuesta de video · Te-incluye*',
+        '',
+        `👤 *Nombre:* ${nombre}`,
+        email       ? `📧 *Correo:* ${email}`             : null,
+        `🔗 *Video:* ${url}`,
+        `🏷️ *Categoría:* ${categoria}`,
+        descripcion ? `💬 *Descripción:* ${descripcion}` : null,
+      ].filter(Boolean).join('\n');
+
+      window.open(`https://wa.me/3229135021?text=${encodeURIComponent(mensaje)}`, '_blank');
+    });
+  </script>
+
+</body>
+</html>

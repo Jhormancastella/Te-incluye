@@ -3,673 +3,323 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <meta name="description" content="Incluyeme: plataforma municipal de inclusión para personas con discapacidad, proyectos, recursos, galería y más">
-  <meta name="theme-color" content="#fafafa">
-  <title>Te-incluye · Plataforma municipal inclusiva</title>
-  
-  <!-- Favicon using logo -->
+  <meta name="description" content="Corporación Te-incluye: organización dedicada a la inclusión de personas con discapacidad en Colombia. Proyectos, recursos, galería y comunidad.">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Te-incluye · Inclusión que transforma</title>
+
   <link rel="icon" type="image/png" href="assets/images/logo.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  
-  <!-- Fonts + Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- CSS Modules (ordered for cascade) -->
-  <link rel="stylesheet" href="assets/css/01-variables.css">
-  <link rel="stylesheet" href="assets/css/02-reset.css">
-  <link rel="stylesheet" href="assets/css/03-layout.css">
-  <link rel="stylesheet" href="assets/css/04-components.css">
-  <link rel="stylesheet" href="assets/css/05-forms.css">
-  <link rel="stylesheet" href="assets/css/06-gallery.css">
-  <link rel="stylesheet" href="assets/css/07-admin.css">
-  <link rel="stylesheet" href="assets/css/08-animations.css">
-  <link rel="stylesheet" href="assets/css/09-responsive.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/index.css">
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com">
 </head>
 <body>
-  <!-- Skip Link -->
+
   <a href="#main" class="skip-link">
-    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
   </a>
-  
-  <!-- Header -->
-  <header class="header">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="site-header" role="banner">
     <div class="container">
       <div class="header-inner">
-        <a href="index.html" class="logo" aria-label="Inicio">
-          <img src="assets/images/logo.png" alt="Incluyeme - Logo" class="logo-img">
-          <div class="logo-text">
-            <h1 class="logo-title">Te-incluye</h1>
-            <p class="logo-slogan">Ayuda real para quienes la necesitan, y para quienes la dan</p>
-          </div>
+        <a href="index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
         </a>
-        
-        <div class="header-actions">
-          <button class="theme-toggle" id="themeToggle" aria-label="Cambiar modo oscuro" aria-pressed="false">
-            <i class="fas fa-moon" aria-hidden="true"></i>
-            <span>Oscuro</span>
+
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="index.html"      class="nav-link active" aria-current="page">Inicio</a>
+          <a href="pages/galeria.html"    class="nav-link">Galería</a>
+          <a href="pages/videos.html"     class="nav-link">Videos</a>
+          <a href="pages/proyectos.html"  class="nav-link">Proyectos</a>
+          <a href="pages/recursos.html"   class="nav-link">Recursos</a>
+          <a href="pages/historia.html"   class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
           </button>
-          <a class="header-icon-btn" href="admin.html" aria-label="Panel de administración" title="Admin">
-            <i class="fas fa-shield-halved" aria-hidden="true"></i>
-          </a>
-          <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobileMenu">
-            <i class="fas fa-bars"></i>
+        </nav>
+
+        <!-- Grupo derecho: hamburger + auth juntos -->
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
           </button>
+          <div id="user-widget"></div>
         </div>
-      </div>
     </div>
   </header>
-  
-  <!-- Mobile Menu Overlay -->
-  <div class="mobile-menu-overlay" id="mobileMenuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
-    <nav class="mobile-menu" id="mobileMenu">
-      <div class="mobile-menu-header">
-        <strong>Navegación</strong>
-        <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Cerrar menú">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <button class="mobile-nav-btn active" data-tab="inicio">
-        <i class="fas fa-home" aria-hidden="true"></i> Inicio
-      </button>
-      <button class="mobile-nav-btn" data-tab="proyectos">
-        <i class="fas fa-rocket" aria-hidden="true"></i> Proyectos
-      </button>
-      <button class="mobile-nav-btn" data-tab="recursos">
-        <i class="fas fa-map-location-dot" aria-hidden="true"></i> Recursos
-      </button>
-      <button class="mobile-nav-btn" data-tab="galeria">
-        <i class="fas fa-images" aria-hidden="true"></i> Galería
-      </button>
-      <button class="mobile-nav-btn" data-tab="videos">
-        <i class="fas fa-video" aria-hidden="true"></i> Videos
-      </button>
-      <a class="mobile-nav-link" href="historia.html">
-        <i class="fas fa-landmark" aria-hidden="true"></i> Historia
-      </a>
-      <button class="mobile-nav-btn" data-tab="registro">
-        <i class="fas fa-user-plus" aria-hidden="true"></i> Registro
-      </button>
-    </nav>
-  </div>
-  
-  <div class="container">
-    <!-- Desktop Navigation -->
-    <nav class="nav-tabs" role="tablist" aria-label="Secciones principales">
-      <button class="nav-btn active" data-tab="inicio" role="tab" aria-selected="true">
-        <i class="fas fa-home" aria-hidden="true"></i> Inicio
-      </button>
-      <button class="nav-btn" data-tab="proyectos" role="tab" aria-selected="false">
-        <i class="fas fa-rocket" aria-hidden="true"></i> Proyectos
-      </button>
-      <button class="nav-btn" data-tab="recursos" role="tab" aria-selected="false">
-        <i class="fas fa-map-location-dot" aria-hidden="true"></i> Recursos
-      </button>
-      <button class="nav-btn" data-tab="galeria" role="tab" aria-selected="false">
-        <i class="fas fa-images" aria-hidden="true"></i> Galería
-      </button>
-      <button class="nav-btn" data-tab="videos" role="tab" aria-selected="false">
-        <i class="fas fa-video" aria-hidden="true"></i> Videos
-      </button>
-      <a class="nav-link-page" href="historia.html">
-        <i class="fas fa-landmark" aria-hidden="true"></i> Historia
-      </a>
-      <button class="nav-btn" data-tab="registro" role="tab" aria-selected="false">
-        <i class="fas fa-user-plus" aria-hidden="true"></i> Registro
-      </button>
-    </nav>
-    
-    <main id="main" role="main">
-      <!-- ===== INICIO ===== -->
-      <section id="inicio" class="section active-section" role="tabpanel">
-        <!-- Featured Banner (dynamic) -->
-        <div id="featuredBanner"></div>
-        
-        <!-- Hero -->
-        <div class="hero">
-          <h2>Construyendo un municipio más inclusivo</h2>
-          <p>Plataforma oficial para acceder a información, servicios y proyectos para personas con discapacidad.</p>
-        </div>
-        
-        <!-- Stats -->
-        <div class="stats-grid">
-          <article class="stat-card">
-            <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-            <div class="stat-content">
-              <h3>12+ Proyectos activos</h3>
-              <p>Iniciativas en ejecución</p>
-            </div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon"><i class="fas fa-hand-holding-heart"></i></div>
-            <div class="stat-content">
-              <h3>20+ Recursos</h3>
-              <p>Servicios disponibles</p>
-            </div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon"><i class="fas fa-bell"></i></div>
-            <div class="stat-content">
-              <h3>¿ Alertas?</h3>
-              <p>Notificaciones personalizadas</p>
-            </div>
-          </article>
-        </div>
-        
-        <!-- Featured Projects Preview -->
-        <div class="section-header">
-          <h2><i class="fas fa-star"></i> Proyectos Destacados</h2>
-          <a href="#proyectos" class="btn btn-secondary btn-sm" data-tab-trigger="proyectos">Ver todos</a>
-        </div>
-        <div id="featuredProjects" class="grid-cards"></div>
-        
-        <!-- Featured Resources Preview -->
-        <div class="section-header">
-          <h2><i class="fas fa-hand-holding-heart"></i> Recursos Populares</h2>
-          <a href="#recursos" class="btn btn-secondary btn-sm" data-tab-trigger="recursos">Ver directorio</a>
-        </div>
-        <div id="featuredResources" class="grid-cards"></div>
-        
-        <!-- Gallery Preview -->
-        <div class="section-header">
-          <h2><i class="fas fa-images"></i> Galería Destacada</h2>
-          <a href="#galeria" class="btn btn-secondary btn-sm" data-tab-trigger="galeria">Ver galería completa</a>
-        </div>
-        <div id="galeriaPreview"></div>
-      </section>
-      
-      <!-- ===== PROYECTOS ===== -->
-      <section id="proyectos" class="section" role="tabpanel" aria-hidden="true" inert>
-        <div class="section-header">
-          <h2><i class="fas fa-rocket"></i> Todos los Proyectos</h2>
-          <div class="section-actions">
-            <button class="btn btn-secondary btn-sm" id="btnAgregarProyectoDemo">
-              <i class="fas fa-plus"></i> Simular proyecto
-            </button>
-          </div>
-        </div>
-        <p class="text-muted mb-3">Iniciativas municipales activas y cómo participar.</p>
-        <div id="proyectosList" class="grid-cards" role="list"></div>
-      </section>
-      
-      <!-- ===== RECURSOS ===== -->
-      <section id="recursos" class="section" role="tabpanel" aria-hidden="true" inert>
-        <div class="section-header">
-          <h2><i class="fas fa-map-location-dot"></i> Directorio Completo</h2>
-          <div class="section-actions">
-            <button class="btn btn-secondary btn-sm" id="btnAgregarRecursoDemo">
-              <i class="fas fa-plus"></i> Añadir recurso
-            </button>
-          </div>
-        </div>
-        <p class="text-muted mb-3">Servicios y apoyos especializados en el municipio.</p>
-        <div id="recursosList" class="grid-cards" role="list"></div>
-      </section>
-      
-      <!-- ===== GALERÍA ===== -->
-      <section id="galeria" class="section" role="tabpanel" aria-hidden="true" inert>
-        <div class="section-header">
-          <h2><i class="fas fa-images"></i> Galería</h2>
-        </div>
-        <p class="text-muted mb-3">Momentos, infraestructura, testimonios y videos de nuestra comunidad inclusiva.</p>
-        
-        <div id="galeriaFilters" class="gallery-filters"></div>
-        <div id="galeriaList" class="gallery-grid" role="list"></div>
-        <div id="galeriaPagination" class="pagination"></div>
-        
-        <!-- Lightbox -->
-        <div id="galleryLightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Visor de imagen">
-          <button class="lightbox-close" aria-label="Cerrar">&times;</button>
-          <button class="lightbox-nav lightbox-prev" aria-label="Imagen anterior"><i class="fas fa-chevron-left"></i></button>
-          <div class="lightbox-content">
-            <div class="lightbox-media"></div>
-            <div class="lightbox-caption">
-              <h4></h4>
-              <p></p>
-            </div>
-          </div>
-          <button class="lightbox-nav lightbox-next" aria-label="Imagen siguiente"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </section>
-      
-      <!-- ===== VIDEOS ===== -->
-      <section id="videos" class="section" role="tabpanel" aria-hidden="true" inert>
-        <div class="section-header">
-          <h2><i class="fas fa-video"></i> Galería de Videos</h2>
-        </div>
-        <p class="text-muted mb-3">Tutoriales, eventos y testimonios en formato video.</p>
 
-        <!-- Playlist completa embebida -->
-        <div class="playlist-embed-card">
-          <div class="playlist-embed-header">
-            <div class="playlist-embed-info">
-              <span class="playlist-embed-badge"><i class="fab fa-youtube"></i> Playlist</span>
-              <h3>Videos sobre discapacidad e inclusión</h3>
-              <p>Colección de videos educativos sobre definiciones, derechos y participación de personas con discapacidad.</p>
-            </div>
-            <a class="playlist-embed-link btn btn-secondary btn-sm"
-               href="https://www.youtube.com/playlist?list=PLqaK60ndByalZ17LVXfzorjy_cmNFeMME"
-               target="_blank" rel="noopener noreferrer">
-              <i class="fas fa-up-right-from-square"></i> Ver en YouTube
+  <!-- ═══ MAIN ═══ -->
+  <main id="main" role="main">
+
+    <!-- ── HERO ─────────────────────────────────────────── -->
+    <section class="hero-v2" aria-labelledby="hero-title">
+      <!-- Fondo decorativo -->
+      <div class="hero-v2__bg" aria-hidden="true">
+        <div class="hero-v2__blob hero-v2__blob--1"></div>
+        <div class="hero-v2__blob hero-v2__blob--2"></div>
+        <div class="hero-v2__blob hero-v2__blob--3"></div>
+        <div class="hero-v2__grid"></div>
+      </div>
+
+      <div class="container hero-v2__inner">
+        <!-- Copy -->
+        <div class="hero-v2__copy">
+          <div class="hero-v2__badge">
+            <i class="fas fa-building" aria-hidden="true"></i>
+            Corporación Te-incluye
+          </div>
+          <h1 id="hero-title" class="hero-v2__title" data-hero-title>
+            Inclusión que<br><span class="hero-v2__title-accent">transforma vidas</span>
+          </h1>
+          <p class="hero-v2__subtitle" data-hero-subtitle>
+            Somos una corporación que centraliza proyectos, recursos y comunidad
+            para visibilizar y potenciar la inclusión de personas con discapacidad en Colombia.
+          </p>
+          <div class="hero-v2__actions">
+            <a href="pages/proyectos.html" class="btn btn-hero-outline">
+              Explorar proyectos
+              <i class="fas fa-arrow-right" aria-hidden="true"></i>
             </a>
           </div>
-          <div class="playlist-embed-frame">
-            <iframe
-              src="https://www.youtube.com/embed/videoseries?list=PLqaK60ndByalZ17LVXfzorjy_cmNFeMME&rel=0&modestbranding=1"
-              title="Playlist: Videos sobre discapacidad e inclusión"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-              loading="lazy"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-presentation">
-            </iframe>
+          <!-- Mini stats inline -->
+          <div class="hero-v2__mini-stats" data-stats-container aria-label="Estadísticas de impacto">
+            <div class="skeleton skeleton-text short"></div>
+            <div class="skeleton skeleton-text short"></div>
+            <div class="skeleton skeleton-text short"></div>
           </div>
         </div>
 
-        <div class="section-header" style="margin-top:var(--space-8)">
-          <h3 style="font-size:var(--font-size-xl);display:flex;align-items:center;gap:.5rem">
-            <i class="fas fa-film" style="color:var(--color-primary)"></i> Videos individuales
-          </h3>
-        </div>
-
-        <div id="videosFilters" class="gallery-filters"></div>
-        <div id="videosList" class="video-grid" role="list"></div>
-        <div id="videosPagination" class="pagination"></div>
-        
-        <!-- Video Lightbox -->
-        <div id="videoLightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Reproductor de video">
-          <button class="lightbox-close" aria-label="Cerrar">&times;</button>
-          <button class="lightbox-nav lightbox-prev" aria-label="Video anterior"><i class="fas fa-chevron-left"></i></button>
-          <div class="lightbox-content">
-            <div class="lightbox-media"></div>
-            <div class="lightbox-caption">
-              <h4></h4>
-              <p></p>
-            </div>
-          </div>
-          <button class="lightbox-nav lightbox-next" aria-label="Video siguiente"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </section>
-      
-      <!-- ===== REGISTRO ===== -->
-      <section id="registro" class="section" role="tabpanel" aria-hidden="true" inert>
-
-        <!-- Hero del registro -->
-        <div class="registro-hero">
-          <div class="registro-hero-text">
-            <span class="registro-kicker"><i class="fas fa-users"></i> Comunidad Incluyeme</span>
-            <h2>Únete a la red de inclusión</h2>
-            <p>Regístrate para recibir información sobre proyectos, eventos y recursos adaptados a tus intereses. Tu participación fortalece la inclusión en el municipio.</p>
-          </div>
-          <div class="registro-hero-benefits">
-            <div class="registro-benefit">
-              <i class="fas fa-bell"></i>
-              <div>
-                <strong>Notificaciones</strong>
-                <span>Entérate primero de nuevos proyectos y convocatorias</span>
+        <!-- Visual card — visible en todos los tamaños -->
+        <div class="hero-v2__visual">
+          <div class="hero-v2__card-stack">
+            <div class="hero-v2__card hero-v2__card--back"></div>
+            <div class="hero-v2__card hero-v2__card--mid"></div>
+            <div class="hero-v2__card hero-v2__card--front">
+              <div class="hero-v2__card-header">
+                <span class="hero-v2__card-dot red"></span>
+                <span class="hero-v2__card-dot yellow"></span>
+                <span class="hero-v2__card-dot green"></span>
+                <span class="hero-v2__card-title">Comunidad activa</span>
               </div>
-            </div>
-            <div class="registro-benefit">
-              <i class="fas fa-handshake"></i>
-              <div>
-                <strong>Participación</strong>
-                <span>Accede a espacios de consulta y toma de decisiones</span>
+              <div class="hero-v2__card-body">
+                <div class="hero-v2__card-stat">
+                  <i class="fas fa-users"></i>
+                  <div>
+                    <strong data-hero-count-members>—</strong>
+                    <small>Miembros registrados</small>
+                  </div>
+                </div>
+                <div class="hero-v2__card-stat">
+                  <i class="fas fa-rocket"></i>
+                  <div>
+                    <strong data-hero-count-projects>—</strong>
+                    <small>Proyectos activos</small>
+                  </div>
+                </div>
+                <div class="hero-v2__card-stat">
+                  <i class="fas fa-map-location-dot"></i>
+                  <div>
+                    <strong data-hero-count-resources>—</strong>
+                    <small>Recursos disponibles</small>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="registro-benefit">
-              <i class="fas fa-map-location-dot"></i>
-              <div>
-                <strong>Recursos cercanos</strong>
-                <span>Recibe información de servicios disponibles en tu zona</span>
+              <div class="hero-v2__card-footer">
+                <span class="hero-v2__pulse"></span> Actualizado en tiempo real
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Formulario -->
-        <div class="form-card registro-form-card">
-          <div class="registro-form-header">
-            <h3>Datos de contacto</h3>
-            <p>Campos con <span class="required" aria-label="obligatorio">*</span> son obligatorios. Tu información es confidencial y no se comparte con terceros.</p>
-          </div>
-
-          <form id="registroForm" novalidate autocomplete="on">
-
-            <!-- Datos personales -->
-            <fieldset class="registro-fieldset">
-              <legend>Información personal</legend>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="fullname">
-                    <i class="fas fa-user" aria-hidden="true"></i>
-                    Nombre completo <span class="required" aria-label="obligatorio">*</span>
-                  </label>
-                  <input type="text" id="fullname" name="fullname"
-                    required autocomplete="name"
-                    placeholder="Tu nombre y apellido"
-                    aria-required="true" minlength="2" maxlength="100">
-                </div>
-                <div class="form-group">
-                  <label for="emailReg">
-                    <i class="fas fa-envelope" aria-hidden="true"></i>
-                    Correo electrónico <span class="required" aria-label="obligatorio">*</span>
-                  </label>
-                  <input type="email" id="emailReg" name="email"
-                    required autocomplete="email"
-                    placeholder="correo@ejemplo.com"
-                    aria-required="true" inputmode="email">
-                </div>
-                <div class="form-group">
-                  <label for="phone">
-                    <i class="fas fa-phone" aria-hidden="true"></i>
-                    Teléfono / WhatsApp
-                  </label>
-                  <input type="tel" id="phone" name="phone"
-                    autocomplete="tel"
-                    placeholder="+57 300 123 4567"
-                    inputmode="tel">
-                </div>
-                <div class="form-group">
-                  <label for="barrio">
-                    <i class="fas fa-location-dot" aria-hidden="true"></i>
-                    Barrio o vereda
-                  </label>
-                  <input type="text" id="barrio" name="barrio"
-                    placeholder="¿En qué sector vives?"
-                    maxlength="80">
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- Perfil de participación -->
-            <fieldset class="registro-fieldset">
-              <legend>Perfil de participación</legend>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="rolParticipacion">
-                    <i class="fas fa-id-badge" aria-hidden="true"></i>
-                    ¿Cómo participas?
-                  </label>
-                  <select id="rolParticipacion" name="rol">
-                    <option value="">Selecciona una opción</option>
-                    <option value="persona_discapacidad">Persona con discapacidad</option>
-                    <option value="familiar_cuidador">Familiar o cuidador/a</option>
-                    <option value="profesional_salud">Profesional de salud o rehabilitación</option>
-                    <option value="docente">Docente o educador/a</option>
-                    <option value="funcionario">Funcionario/a público/a</option>
-                    <option value="organizacion">Organización o colectivo</option>
-                    <option value="voluntario">Voluntario/a</option>
-                    <option value="otro">Otro</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="disabilityType">
-                    <i class="fas fa-circle-info" aria-hidden="true"></i>
-                    Tipo de discapacidad
-                    <span class="registro-opcional">(opcional — solo si aplica)</span>
-                  </label>
-                  <select id="disabilityType" name="discapacidad">
-                    <option value="">Prefiero no especificar</option>
-                    <option value="motriz">Motriz / Física</option>
-                    <option value="visual">Visual</option>
-                    <option value="auditiva">Auditiva</option>
-                    <option value="cognitiva">Cognitiva / Intelectual</option>
-                    <option value="psicosocial">Psicosocial / Mental</option>
-                    <option value="multiple">Múltiple</option>
-                    <option value="otra">Otra</option>
-                  </select>
-                  <small class="registro-field-hint">Esta información nos ayuda a personalizar los recursos que te enviamos.</small>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- Áreas de interés -->
-            <fieldset class="registro-fieldset">
-              <legend>¿Qué temas te interesan?</legend>
-              <p class="registro-fieldset-desc">Selecciona todos los que apliquen. Usaremos esto para enviarte información relevante.</p>
-              <div class="registro-intereses" id="interesesGroup" role="group" aria-label="Áreas de interés">
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="accesibilidad">
-                  <i class="fas fa-universal-access"></i> Accesibilidad urbana
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="empleo">
-                  <i class="fas fa-briefcase"></i> Empleo inclusivo
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="salud">
-                  <i class="fas fa-heart-pulse"></i> Salud y rehabilitación
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="educacion">
-                  <i class="fas fa-graduation-cap"></i> Educación inclusiva
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="cultura">
-                  <i class="fas fa-palette"></i> Cultura y deporte
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="tecnologia">
-                  <i class="fas fa-laptop"></i> Tecnología asistiva
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="derechos">
-                  <i class="fas fa-scale-balanced"></i> Derechos y normativa
-                </label>
-                <label class="registro-interes-chip">
-                  <input type="checkbox" name="interes" value="transporte">
-                  <i class="fas fa-bus"></i> Transporte accesible
-                </label>
-              </div>
-            </fieldset>
-
-            <!-- Consentimiento -->
-            <fieldset class="registro-fieldset registro-fieldset--consent">
-              <legend class="sr-only">Consentimiento</legend>
-              <label class="registro-consent-label">
-                <input type="checkbox" id="privacyConsent" name="consent" required aria-required="true">
-                <span>
-                  Acepto que mis datos sean usados para recibir información sobre proyectos e iniciativas de inclusión del municipio.
-                  Puedo solicitar su eliminación en cualquier momento.
-                  <a href="#" class="registro-link">Política de privacidad</a>
-                  <span class="required" aria-label="obligatorio">*</span>
-                </span>
-              </label>
-            </fieldset>
-
-            <button type="submit" class="btn btn-full registro-submit" id="registroSubmit">
-              <i class="fas fa-paper-plane" aria-hidden="true"></i>
-              Registrarme en la comunidad
-            </button>
-
-            <div id="formFeedback" role="status" aria-live="polite" class="registro-feedback"></div>
-          </form>
-        </div>
-
-        <!-- Estado de éxito (oculto por defecto) -->
-        <div class="registro-success" id="registroSuccess" hidden aria-live="polite">
-          <div class="registro-success-icon">
-            <i class="fas fa-circle-check"></i>
-          </div>
-          <h3>¡Registro exitoso!</h3>
-          <p id="registroSuccessMsg"></p>
-          <button class="btn btn-secondary" id="registroNuevo">
-            <i class="fas fa-plus"></i> Registrar otra persona
-          </button>
-        </div>
-
-      </section>
-      
-    </main>
-  </div>
-  
-  <!-- Footer -->
-  <footer>
-    <p><strong>Te-incluye</strong> © Derechos reservados a Jhorman Castellanos 2026</p>
-  </footer>
-  
-  <!-- Toast Container -->
-  <div id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
-
-  <!-- ===== MODAL LOGIN ADMIN ===== -->
-  <div class="admin-gate-overlay" id="adminGateOverlay" role="dialog" aria-modal="true" aria-labelledby="adminGateTitle" hidden>
-    <div class="admin-gate-card" id="adminGateCard">
-      <button class="admin-gate-close" id="adminGateClose" aria-label="Cerrar">
-        <i class="fas fa-times"></i>
-      </button>
-      <div class="admin-gate-logo">
-        <img src="assets/images/logo.png" alt="Incluyeme">
-        <h2 id="adminGateTitle">Panel de Administración</h2>
-        <p>Ingresa tus credenciales para continuar</p>
       </div>
-      <form id="adminGateForm" novalidate>
-        <div class="form-group">
-          <label for="gateEmail"><i class="fas fa-envelope" aria-hidden="true"></i> Email</label>
-          <input type="email" id="gateEmail" placeholder="admin@municipio.local" autocomplete="email" required>
+
+      <!-- Scroll indicator -->
+      <div class="hero-v2__scroll" aria-hidden="true">
+        <span></span>
+      </div>
+    </section>
+
+    <!-- ── BANNER DESTACADO (admin) ─────────────────────── -->
+    <section class="section section--banner" data-featured-banner aria-label="Banner destacado">
+      <div class="container">
+        <!-- Se llena dinámicamente desde admin -->
+      </div>
+    </section>
+
+    <!-- ── PROYECTOS DESTACADOS ──────────────────────────── -->
+    <section id="proyectos" class="section" aria-labelledby="featured-projects-title">
+      <div class="container">
+        <header class="section-header section-header--split">
+          <div>
+            <p class="section-eyebrow">Iniciativas</p>
+            <h2 id="featured-projects-title" class="section-title">Proyectos destacados</h2>
+            <p class="section-subtitle">Seleccionados por su impacto en la comunidad</p>
+          </div>
+          <a href="pages/proyectos.html" class="btn btn-outline btn-sm section-header__link">
+            Ver todos <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </header>
+
+        <div class="projects-grid" data-featured-projects>
+          <!-- Skeletons mientras carga -->
+          <article class="card project-card" aria-hidden="true">
+            <div class="card-image"><div class="skeleton skeleton-image" style="height:100%"></div></div>
+            <div class="card-body">
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text full"></div>
+            </div>
+          </article>
+          <article class="card project-card" aria-hidden="true">
+            <div class="card-image"><div class="skeleton skeleton-image" style="height:100%"></div></div>
+            <div class="card-body">
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text full"></div>
+            </div>
+          </article>
+          <article class="card project-card" aria-hidden="true">
+            <div class="card-image"><div class="skeleton skeleton-image" style="height:100%"></div></div>
+            <div class="card-body">
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text full"></div>
+            </div>
+          </article>
         </div>
-        <div class="form-group" style="position:relative">
-          <label for="gatePassword"><i class="fas fa-lock" aria-hidden="true"></i> Contraseña</label>
-          <input type="password" id="gatePassword" placeholder="••••••••" autocomplete="current-password" required style="padding-right:3rem">
-          <button type="button" id="gateEyeBtn" aria-label="Mostrar contraseña"
-            style="position:absolute;right:0.75rem;bottom:0.75rem;background:none;border:none;color:var(--color-text-muted);cursor:pointer;padding:0.25rem">
-            <i class="fas fa-eye"></i>
-          </button>
+      </div>
+    </section>
+
+    <!-- ── GALERÍA DESTACADA ──────────────────────────────── -->
+    <section id="galeria" class="section section--alt" aria-labelledby="featured-gallery-title">
+      <div class="container">
+        <header class="section-header section-header--split">
+          <div>
+            <p class="section-eyebrow">Comunidad</p>
+            <h2 id="featured-gallery-title" class="section-title">Historias que inspiran</h2>
+            <p class="section-subtitle">Momentos que muestran el impacto real</p>
+          </div>
+          <a href="pages/galeria.html" class="btn btn-outline btn-sm section-header__link">
+            Ver galería <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </header>
+
+        <div class="gallery-grid gallery-grid--masonry" data-featured-gallery>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
         </div>
-        <div id="gateError" role="alert" aria-live="polite"
-          style="font-size:0.85rem;color:var(--color-error);min-height:1.2rem;margin-bottom:0.25rem"></div>
-        <button type="submit" class="btn btn-full" id="gateSubmit">
-          <i class="fas fa-right-to-bracket"></i> Acceder al panel
-        </button>
-      </form>
+      </div>
+    </section>
+
+    <!-- ── VIDEOS DESTACADOS ─────────────────────────────── -->
+    <section id="videos" class="section" aria-labelledby="featured-videos-title">
+      <div class="container">
+        <header class="section-header section-header--split">
+          <div>
+            <p class="section-eyebrow">En movimiento</p>
+            <h2 id="featured-videos-title" class="section-title">Videos destacados</h2>
+            <p class="section-subtitle">Historias que generan cambio social</p>
+          </div>
+          <a href="pages/videos.html" class="btn btn-outline btn-sm section-header__link">
+            Ver todos <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </header>
+
+        <div class="gallery-grid" data-featured-videos>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
+          <div class="skeleton skeleton-image" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SOLICITUD DE APOYO (CTA) ──────────────────────── -->
+    <section class="section section--cta" aria-labelledby="apoyo-title">
+      <div class="container">
+        <div class="cta-center">
+          <p class="section-eyebrow">¿Necesitas ayuda?</p>
+          <h2 id="apoyo-title" class="section-title">Solicita apoyo personalizado</h2>
+          <p class="section-subtitle">
+            Nuestro equipo puede orientarte sobre recursos, trámites o
+            cómo acceder a los proyectos y programas de la corporación.
+          </p>
+          <div class="cta-center__actions">
+            <a href="pages/recursos.html" class="btn btn-hero-outline">
+              Ver recursos <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+
+        <div class="footer-section footer-brand">
+          <a href="index.html" class="logo footer-logo" aria-label="Te-incluye">
+            <img src="assets/images/logo.png" alt="" width="36" height="36">
+            <span class="logo-title">Te-incluye</span>
+          </a>
+          <p>Construyendo una sociedad más inclusiva, una historia a la vez.</p>
+          <a href="mailto:teincluye222@gmail.com" class="footer-email">
+            <i class="fas fa-envelope" aria-hidden="true"></i>
+            teincluye222@gmail.com
+          </a>
+        </div>
+
+        <div class="footer-section">
+          <h4>Navegar</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="pages/galeria.html">Galería</a></li>
+            <li><a href="pages/videos.html">Videos</a></li>
+            <li><a href="pages/proyectos.html">Proyectos</a></li>
+            <li><a href="pages/recursos.html">Recursos</a></li>
+            <li><a href="pages/historia.html">Historia</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Participar</h4>
+          <ul class="footer-links">
+            <li><a href="pages/recursos.html">Ver recursos</a></li>
+            <li><a href="pages/admin.html">Panel administrativo</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Corporación Te-incluye · <small>Inclusión social · Colombia</small></p>
+      </div>
     </div>
-  </div>
+  </footer>
 
-  <style>
-    .admin-gate-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      z-index: 900;
-      display: flex; align-items: center; justify-content: center;
-      padding: 1rem;
-      animation: fadeIn 0.2s ease;
-    }
-    .admin-gate-overlay[hidden] { display: none; }
-    .admin-gate-card {
-      background: var(--color-bg-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 2.25rem 2rem 2rem;
-      width: 100%; max-width: 400px;
-      box-shadow: var(--shadow-xl);
-      position: relative;
-      animation: slideUp 0.25s ease;
-    }
-    .admin-gate-close {
-      position: absolute; top: 1rem; right: 1rem;
-      background: none; border: none;
-      color: var(--color-text-muted); cursor: pointer;
-      padding: 0.4rem; border-radius: var(--radius-xs);
-      font-size: 1rem; line-height: 1;
-      transition: background 0.15s, color 0.15s;
-    }
-    .admin-gate-close:hover { background: var(--color-bg-surface-alt); color: var(--color-text-primary); }
-    .admin-gate-logo {
-      text-align: center; margin-bottom: 1.75rem;
-    }
-    .admin-gate-logo img { width: 48px; height: 48px; object-fit: contain; margin-bottom: 0.75rem; }
-    .admin-gate-logo h2 { font-size: 1.2rem; font-weight: 700; margin: 0 0 0.25rem; color: var(--color-brand-title); }
-    .admin-gate-logo p  { font-size: 0.85rem; color: var(--color-text-muted); margin: 0; }
-    #adminGateForm { display: flex; flex-direction: column; gap: 1rem; }
-
-    /* Page-exit transition */
-    .page-exit {
-      animation: pageExit 0.45s ease forwards;
-    }
-    @keyframes pageExit {
-      0%   { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(0.97); }
-    }
-  </style>
-  
-  <!-- JavaScript Modules (type="module" for ES6 imports) -->
+  <!-- Scripts -->
+  <script type="module" src="assets/js/firebase-config.js"></script>
   <script type="module" src="assets/js/app.js"></script>
-
   <script type="module">
-    import { Auth } from './assets/js/auth.js';
-
-    const overlay  = document.getElementById('adminGateOverlay');
-    const form     = document.getElementById('adminGateForm');
-    const closeBtn = document.getElementById('adminGateClose');
-    const eyeBtn   = document.getElementById('gateEyeBtn');
-    const emailIn  = document.getElementById('gateEmail');
-    const passIn   = document.getElementById('gatePassword');
-    const errorEl  = document.getElementById('gateError');
-    const submitBtn= document.getElementById('gateSubmit');
-    const adminBtn = document.querySelector('a[href="admin.html"]');
-
-    // Pre-load Supabase session so isAuthenticated() works immediately
-    Auth.loadSession();
-
-    // Open modal instead of navigating directly
-    adminBtn?.addEventListener('click', async e => {
-      e.preventDefault();
-      // Ensure session is loaded before checking
-      await Auth.loadSession();
-      if (Auth.isAuthenticated()) {
-        navigateToAdmin();
-        return;
-      }
-      overlay.hidden = false;
-      document.body.style.overflow = 'hidden';
-      setTimeout(() => emailIn.focus(), 80);
-    });
-
-    // Close
-    const closeModal = () => {
-      overlay.hidden = true;
-      document.body.style.overflow = '';
-      form.reset();
-      errorEl.textContent = '';
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> Acceder al panel';
-    };
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) closeModal(); });
-
-    // Eye toggle
-    eyeBtn.addEventListener('click', () => {
-      const show = passIn.type === 'password';
-      passIn.type = show ? 'text' : 'password';
-      eyeBtn.querySelector('i').className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
-    });
-
-    // Submit
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      errorEl.textContent = '';
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
-
-      const ok = await Auth.login(emailIn.value.trim(), passIn.value);
-
-      if (ok) {
-        submitBtn.innerHTML = '<i class="fas fa-check"></i> Acceso concedido';
-        setTimeout(navigateToAdmin, 500);
-      } else {
-        errorEl.textContent = 'Email o contraseña incorrectos.';
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> Acceder al panel';
-        passIn.focus();
-      }
-    });
-
-    function navigateToAdmin() {
-      document.body.classList.add('page-exit');
-      setTimeout(() => { window.location.href = 'admin.html'; }, 420);
-    }
+    import { initUserAuth } from './assets/js/user-auth.js';
+    initUserAuth();
   </script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
 </body>
-</html>
 </html>

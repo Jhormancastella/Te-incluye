@@ -8,44 +8,24 @@
   <meta name="theme-color" content="#fafafa">
   <title>Admin · Incluyeme</title>
 
-  <link rel="icon" type="image/png" href="assets/images/logo.png">
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <link rel="stylesheet" href="assets/css/01-variables.css">
-  <link rel="stylesheet" href="assets/css/02-reset.css">
-  <link rel="stylesheet" href="assets/css/03-layout.css">
-  <link rel="stylesheet" href="assets/css/04-components.css">
-  <link rel="stylesheet" href="assets/css/05-forms.css">
-  <link rel="stylesheet" href="assets/css/06-gallery.css">
-  <link rel="stylesheet" href="assets/css/07-admin.css">
-  <link rel="stylesheet" href="assets/css/08-animations.css">
-  <link rel="stylesheet" href="assets/css/09-responsive.css">
-  <link rel="stylesheet" href="assets/css/10-admin-panel.css">
-  <style>
-    /* Oculta login inmediatamente si hay sesión válida (antes del JS) */
-    html.ap-authed #apLoginWrap { display: none !important; }
-    html.ap-authed #apContent   { display: block !important; }
-  </style>
-
-  <!-- Evita flash de login si ya hay sesión activa -->
+  <link rel="stylesheet" href="../assets/css/01-variables.css">
+  <link rel="stylesheet" href="../assets/css/02-reset.css">
+  <link rel="stylesheet" href="../assets/css/03-layout.css">
+  <link rel="stylesheet" href="../assets/css/04-components.css">
+  <link rel="stylesheet" href="../assets/css/05-forms.css">
+  <link rel="stylesheet" href="../assets/css/06-gallery.css">
+  <link rel="stylesheet" href="../assets/css/07-admin.css">
+  <link rel="stylesheet" href="../assets/css/admin-theme.css">
+  <link rel="stylesheet" href="../assets/css/08-animations.css">
+  <link rel="stylesheet" href="../assets/css/09-responsive.css">
+  <link rel="stylesheet" href="../assets/css/10-admin-panel.css">
+  <!-- Oculta página hasta verificar auth -->
   <script>
-    (function() {
-      try {
-        // Supabase stores session under 'sb-<ref>-auth-token'
-        const key = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-        if (key) {
-          const raw = localStorage.getItem(key);
-          if (raw) {
-            const data = JSON.parse(raw);
-            if (data?.access_token || data?.user) {
-              document.documentElement.classList.add('ap-authed');
-            }
-          }
-        }
-      } catch(e) {}
-      document.documentElement.style.opacity = '0';
-    })();
+    document.documentElement.style.opacity = '0';
   </script>
 </head>
 <body>
@@ -56,8 +36,8 @@
   <!-- ===== SIDEBAR ===== -->
   <aside class="ap-sidebar" id="apSidebar" aria-label="Navegación del panel">
     <div class="ap-sidebar-header">
-      <a href="index.html" class="ap-brand" aria-label="Volver al sitio">
-        <img src="assets/images/logo.png" alt="Incluyeme" class="ap-brand-logo">
+      <a href="../index.html" class="ap-brand" aria-label="Volver al sitio">
+        <img src="../assets/images/logo.png" alt="Incluyeme" class="ap-brand-logo">
         <div>
           <span class="ap-brand-name">Incluyeme</span>
           <span class="ap-brand-sub">Panel Admin</span>
@@ -116,7 +96,7 @@
         <button class="ap-topbar-btn" id="apThemeToggle" aria-label="Cambiar tema">
           <i class="fas fa-moon"></i>
         </button>
-        <a href="index.html" class="ap-topbar-btn" aria-label="Ver sitio" title="Ver sitio">
+        <a href="../index.html" class="ap-topbar-btn" aria-label="Ver sitio" title="Ver sitio">
           <i class="fas fa-arrow-up-right-from-square"></i>
         </a>
       </div>
@@ -124,40 +104,6 @@
 
     <!-- Main content -->
     <main class="ap-main" id="ap-main">
-
-      <!-- ===== LOGIN ===== -->
-      <div class="ap-login-wrap" id="apLoginWrap">
-        <div class="ap-login-card">
-          <div class="ap-login-logo">
-            <img src="assets/images/logo.png" alt="Incluyeme">
-            <h1>Incluyeme</h1>
-            <p>Panel de Administración</p>
-          </div>
-          <form class="ap-login-form" id="apLoginForm" novalidate>
-            <div class="form-group">
-              <label for="apEmail"><i class="fas fa-envelope"></i> Email</label>
-              <input type="email" id="apEmail" placeholder="admin@municipio.local" autocomplete="email" required>
-            </div>
-            <div class="form-group">
-              <label for="apPassword"><i class="fas fa-lock"></i> Contraseña</label>
-              <div class="ap-input-eye">
-                <input type="password" id="apPassword" placeholder="••••••••" autocomplete="current-password" required>
-                <button type="button" class="ap-eye-btn" id="apEyeBtn" aria-label="Mostrar contraseña">
-                  <i class="fas fa-eye"></i>
-                </button>
-              </div>
-            </div>
-            <div id="apLoginError" class="ap-login-error" role="alert" aria-live="polite"></div>
-            <button type="submit" class="btn btn-full" id="apLoginSubmit">
-              <i class="fas fa-right-to-bracket"></i> Iniciar sesión
-            </button>
-          </form>
-          <p class="ap-login-hint">
-            <i class="fas fa-circle-info"></i>
-            Usa el correo y contraseña de tu cuenta en Supabase.
-          </p>
-        </div>
-      </div>
 
       <!-- ===== PANEL CONTENT ===== -->
       <div class="ap-content" id="apContent" hidden>
@@ -213,7 +159,7 @@
                 <div class="ap-form-grid">
                   <div class="form-group full-width">
                     <label for="heroTitle">Título principal</label>
-                    <input type="text" id="heroTitle" placeholder="Construyendo un municipio más inclusivo">
+                    <input type="text" id="heroTitle" placeholder="Inclusión que transforma vidas">
                   </div>
                   <div class="form-group full-width">
                     <label for="heroSubtitle">Subtítulo</label>
@@ -390,10 +336,11 @@
                 <input type="search" class="ap-search" id="searchVideos" placeholder="Buscar videos...">
                 <select class="ap-filter-select" id="filterVideos">
                   <option value="">Todas las categorías</option>
-                  <option value="Tutoriales">Tutoriales</option>
+                  <option value="Educación">Educación</option>
+                  <option value="Deportes">Deportes</option>
+                  <option value="Salud">Salud</option>
+                  <option value="Empleo">Empleo</option>
                   <option value="Eventos">Eventos</option>
-                  <option value="Testimonios">Testimonios</option>
-                  <option value="Institucional">Institucional</option>
                 </select>
               </div>
               <div class="ap-table-wrap">
@@ -402,7 +349,6 @@
                     <tr>
                       <th>Miniatura</th>
                       <th>Título</th>
-                      <th>Plataforma</th>
                       <th>Categoría</th>
                       <th>Fecha</th>
                       <th>Destacado</th>
@@ -494,13 +440,6 @@
     </div>
   </div>
 
-  <script type="module" src="assets/js/admin-panel.js"></script>
-  <script>
-    // Fade-in de entrada
-    window.addEventListener('DOMContentLoaded', () => {
-      document.documentElement.style.transition = 'opacity 0.35s ease';
-      requestAnimationFrame(() => { document.documentElement.style.opacity = '1'; });
-    });
-  </script>
+  <script type="module" src="../assets/js/admin-panel.js"></script>
 </body>
 </html>

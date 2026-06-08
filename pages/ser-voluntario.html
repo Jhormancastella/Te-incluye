@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Únete como voluntario de Corporación Te-incluye. Aporta tu tiempo y talento para proyectos de inclusión en Colombia.">
+  <title>Ser voluntario · Te-incluye</title>
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <a href="#main" class="skip-link">
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
+  </a>
+
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link active" aria-current="page">Proyectos</a>
+          <a href="recursos.html" class="nav-link">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="section" style="padding-block-start: 4rem;" aria-labelledby="voluntario-title">
+      <div class="container">
+        <p style="text-align:center; margin-block-end: var(--space-4);">
+          <a href="proyectos.html" style="color:var(--color-primary); text-decoration:none; font-size:var(--font-size-sm);">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> Volver a Proyectos
+          </a>
+        </p>
+        <h1 id="voluntario-title" class="section-title" style="text-align:center; margin-block-end: var(--space-3);">
+          Ser voluntario
+        </h1>
+        <p style="text-align:center; color:var(--color-text-secondary); max-width:56ch; margin:0 auto var(--space-6);">
+          Únete a nuestros equipos de voluntarios y transforma vidas con tu tiempo, talento y compromiso con la inclusión.
+        </p>
+
+        <div id="voluntario-status" class="alert" role="status" hidden></div>
+
+        <form id="voluntario-form" class="card" style="max-width:640px; margin:auto; padding:var(--space-6);" novalidate>
+          <h2 class="section-title" style="font-size:var(--font-size-lg); margin-block-end:var(--space-5);">
+            Solicitud de voluntariado
+          </h2>
+
+          <div class="form-group">
+            <label for="sv-nombre" class="form-label form-label-required">Nombre completo</label>
+            <input type="text" id="sv-nombre" class="form-input" required
+              placeholder="Tu nombre completo">
+          </div>
+
+          <div class="form-group">
+            <label for="sv-email" class="form-label form-label-required">Correo electrónico</label>
+            <input type="email" id="sv-email" class="form-input" required autocomplete="email"
+              placeholder="tu.correo@ejemplo.com">
+          </div>
+
+          <div class="form-group">
+            <label for="sv-telefono" class="form-label form-label-required">Teléfono</label>
+            <input type="tel" id="sv-telefono" class="form-input" required autocomplete="tel" placeholder="+57 ...">
+          </div>
+
+          <div class="form-group">
+            <label for="sv-municipio" class="form-label form-label-required">Municipio / Ciudad</label>
+            <input type="text" id="sv-municipio" class="form-input" required placeholder="Ej: Bogotá">
+          </div>
+
+          <div class="form-group">
+            <label for="sv-disponibilidad" class="form-label form-label-required">Disponibilidad</label>
+            <select id="sv-disponibilidad" class="form-input" required>
+              <option value="">Selecciona tu disponibilidad</option>
+              <option value="1-2 horas por semana">1-2 horas por semana</option>
+              <option value="3-5 horas por semana">3-5 horas por semana</option>
+              <option value="6-10 horas por semana">6-10 horas por semana</option>
+              <option value="Más de 10 horas por semana">Más de 10 horas por semana</option>
+              <option value="Eventuales">Eventuales (solo eventos específicos)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="sv-habilidades" class="form-label">Habilidades o experiencia (opcional)</label>
+            <textarea id="sv-habilidades" class="form-input" rows="3"
+              placeholder="¿Qué habilidades, experiencia o conocimientos puedes aportar?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="sv-motivacion" class="form-label form-label-required">¿Por qué quieres ser voluntario?</label>
+            <textarea id="sv-motivacion" class="form-input" rows="4" required
+              placeholder="Cuéntanos tu motivación para unirte a nuestros proyectos de inclusión"></textarea>
+          </div>
+
+          <p id="sv-error" role="alert" style="color:var(--color-error); font-size:var(--font-size-sm); min-height:1.2em; margin-block-end:var(--space-3);"></p>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i> Enviar solicitud por WhatsApp
+          </button>
+
+          <p style="margin-block-start:var(--space-4); font-size:var(--font-size-sm); color:var(--color-text-secondary); text-align:center;">
+            Nuestro equipo revisará tu solicitud y se comunicará contigo pronto.
+          </p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Te-incluye · <small>Inclusión social</small></p>
+        <p style="margin-block-start: var(--space-2);">
+          <a href="mailto:teincluye222@gmail.com" style="color: var(--color-primary); text-decoration: none;">
+            <i class="fas fa-envelope" aria-hidden="true"></i> teincluye222@gmail.com
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module">
+    import { initUserAuth, UserState } from '../assets/js/user-auth.js';
+
+    initUserAuth();
+
+    let authReady = false;
+
+    document.addEventListener('auth:changed', ({ detail }) => {
+      authReady = true;
+      const { user, profile } = detail;
+
+      if (!user) {
+        window.location.href = 'login.html?mode=register&rol=voluntario&next=ser-voluntario.html';
+        return;
+      }
+
+      const status = document.getElementById('voluntario-status');
+      const nombre = document.getElementById('sv-nombre');
+      const email = document.getElementById('sv-email');
+      const municipio = document.getElementById('sv-municipio');
+
+      if (nombre && !nombre.value) nombre.value = profile?.name || user.displayName || '';
+      if (email && !email.value) email.value = user.email || '';
+      if (municipio && !municipio.value && profile?.ubicacion) municipio.value = profile.ubicacion;
+
+      if (profile?.rol === 'voluntario' && status) {
+        status.hidden = false;
+        status.className = 'alert alert-success';
+        status.innerHTML = '<p><strong>¡Ya eres voluntario!</strong> Puedes actualizar tu información o contactarnos para participar en proyectos.</p>';
+      }
+    });
+
+    // Si auth tarda, reintentar redirección para visitantes sin sesión
+    setTimeout(() => {
+      if (!authReady && !UserState.user) {
+        window.location.href = 'login.html?mode=register&rol=voluntario&next=ser-voluntario.html';
+      }
+    }, 2500);
+
+    const WHATSAPP = '3229135021';
+    document.getElementById('voluntario-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const error = document.getElementById('sv-error');
+      error.textContent = '';
+
+      const nombre = document.getElementById('sv-nombre').value.trim();
+      const email = document.getElementById('sv-email').value.trim();
+      const telefono = document.getElementById('sv-telefono').value.trim();
+      const municipio = document.getElementById('sv-municipio').value.trim();
+      const disponibilidad = document.getElementById('sv-disponibilidad').value;
+      const habilidades = document.getElementById('sv-habilidades').value.trim();
+      const motivacion = document.getElementById('sv-motivacion').value.trim();
+
+      if (!nombre) { error.textContent = 'Indica tu nombre completo.'; document.getElementById('sv-nombre').focus(); return; }
+      if (!email) { error.textContent = 'El correo electrónico es obligatorio.'; document.getElementById('sv-email').focus(); return; }
+      if (!telefono) { error.textContent = 'El teléfono es obligatorio.'; document.getElementById('sv-telefono').focus(); return; }
+      if (!municipio) { error.textContent = 'Indica tu municipio o ciudad.'; document.getElementById('sv-municipio').focus(); return; }
+      if (!disponibilidad) { error.textContent = 'Selecciona tu disponibilidad.'; document.getElementById('sv-disponibilidad').focus(); return; }
+      if (!motivacion) { error.textContent = 'Cuéntanos por qué quieres ser voluntario.'; document.getElementById('sv-motivacion').focus(); return; }
+
+      const mensaje = [
+        '🤝 *Solicitud de voluntariado · Corporación Te-incluye*',
+        '',
+        `👤 *Nombre:* ${nombre}`,
+        `📧 *Correo:* ${email}`,
+        `📱 *Teléfono:* ${telefono}`,
+        `📍 *Ubicación:* ${municipio}`,
+        `⏰ *Disponibilidad:* ${disponibilidad}`,
+        habilidades ? `💡 *Habilidades:* ${habilidades}` : '',
+        `💖 *Motivación:* ${motivacion}`
+      ].filter(Boolean).join('\n');
+
+      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    });
+  </script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

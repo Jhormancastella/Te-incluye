@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Propón un proyecto de inclusión para tu comunidad. Comparte tu idea con Te-incluye y evaluemos juntos cómo hacerla realidad.">
+  <title>Proponer proyecto · Te-incluye</title>
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .auth-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+    @media (max-width:480px) { .auth-form-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
+  </a>
+
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link active" aria-current="page">Proyectos</a>
+          <a href="recursos.html" class="nav-link">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="section" style="padding-block-start: 4rem;" aria-labelledby="propuesta-title">
+      <div class="container">
+        <p style="text-align:center; margin-block-end: var(--space-4);">
+          <a href="proyectos.html" style="color:var(--color-primary); text-decoration:none; font-size:var(--font-size-sm);">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> Volver a Proyectos
+          </a>
+        </p>
+        <h1 id="propuesta-title" class="section-title" style="text-align:center; margin-block-end: var(--space-3);">
+          Proponer una iniciativa
+        </h1>
+        <p style="text-align:center; color:var(--color-text-secondary); max-width:52ch; margin:0 auto var(--space-8);">
+          ¿Tienes una idea para un proyecto de inclusión? Cuéntanos los detalles y nuestro equipo la evaluará contigo.
+        </p>
+
+        <form id="proposal-form" class="card" style="max-width:640px; margin:auto; padding:var(--space-6);" novalidate>
+          <h2 class="section-title" style="font-size:var(--font-size-lg); margin-block-end:var(--space-5);">
+            Datos de tu propuesta
+          </h2>
+
+          <div class="form-group">
+            <label for="pp-nombre" class="form-label form-label-required">Nombre completo</label>
+            <input type="text" id="pp-nombre" class="form-input" required autocomplete="name" placeholder="Tu nombre completo">
+          </div>
+
+          <div class="auth-form-grid">
+            <div class="form-group">
+              <label for="pp-email" class="form-label form-label-required">Correo electrónico</label>
+              <input type="email" id="pp-email" class="form-input" required autocomplete="email" placeholder="tu@correo.com">
+            </div>
+            <div class="form-group">
+              <label for="pp-telefono" class="form-label">Teléfono</label>
+              <input type="tel" id="pp-telefono" class="form-input" autocomplete="tel" placeholder="+57 ...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="pp-municipio" class="form-label form-label-required">Municipio</label>
+            <input type="text" id="pp-municipio" class="form-input" required placeholder="Ej. Tibú">
+          </div>
+
+          <div class="form-group">
+            <label for="pp-titulo" class="form-label form-label-required">Nombre del proyecto</label>
+            <input type="text" id="pp-titulo" class="form-input" required placeholder="Ej. Taller de empleabilidad inclusiva">
+          </div>
+
+          <div class="form-group">
+            <label for="pp-categoria" class="form-label form-label-required">Categoría</label>
+            <select id="pp-categoria" class="form-input" required>
+              <option value="">Selecciona una categoría</option>
+              <option value="Educación">Educación</option>
+              <option value="Empleo">Empleo</option>
+              <option value="Salud">Salud</option>
+              <option value="Cultura">Cultura</option>
+              <option value="Deporte">Deporte</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pp-descripcion" class="form-label form-label-required">Describe tu idea</label>
+            <textarea id="pp-descripcion" class="form-input" rows="5" required
+              placeholder="¿Qué problema busca resolver? ¿Cómo funcionaría? ¿Quién se beneficiaría?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="pp-beneficiarios" class="form-label">Público beneficiario</label>
+            <input type="text" id="pp-beneficiarios" class="form-input"
+              placeholder="Ej. Jóvenes con discapacidad intelectual, familias, comunidad rural...">
+          </div>
+
+          <div class="form-group">
+            <label for="pp-recursos" class="form-label">Recursos o apoyo que necesitarías</label>
+            <textarea id="pp-recursos" class="form-input" rows="3"
+              placeholder="Espacio, voluntarios, aliados, materiales, etc. (opcional)"></textarea>
+          </div>
+
+          <p id="pp-error" role="alert" style="color:var(--color-error); font-size:var(--font-size-sm); min-height:1.2em; margin-block-end:var(--space-3);"></p>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i> Enviar propuesta por WhatsApp
+          </button>
+
+          <p style="margin-block-start:var(--space-4); font-size:var(--font-size-sm); color:var(--color-text-secondary); text-align:center;">
+            Tu propuesta llegará a nuestro equipo. Te contactaremos para evaluarla juntos.
+          </p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Te-incluye</h4>
+          <p>Construyendo una sociedad más inclusiva, una historia a la vez.</p>
+          <a href="mailto:teincluye222@gmail.com" class="footer-email">
+            <i class="fas fa-envelope" aria-hidden="true"></i> teincluye222@gmail.com
+          </a>
+        </div>
+        <div class="footer-section">
+          <h4>Navegación</h4>
+          <ul class="footer-links">
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="galeria.html">Galería</a></li>
+            <li><a href="videos.html">Videos</a></li>
+            <li><a href="proyectos.html" aria-current="page">Proyectos</a></li>
+            <li><a href="recursos.html">Recursos</a></li>
+            <li><a href="historia.html">Historia</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Recursos</h4>
+          <ul class="footer-links">
+            <li><a href="proponer-proyecto.html">Proponer proyecto</a></li>
+            <li><a href="apoyo.html">Solicitar apoyo</a></li>
+            <li><a href="admin.html">Panel administrativo</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Corporación Te-incluye · <small>Inclusión social</small></p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module">
+    import { initUserAuth } from '../assets/js/user-auth.js';
+
+    initUserAuth();
+
+    document.addEventListener('auth:changed', ({ detail }) => {
+      const { user, profile } = detail;
+      if (!user) return;
+
+      const nameInput = document.getElementById('pp-nombre');
+      const emailInput = document.getElementById('pp-email');
+      const municipioInput = document.getElementById('pp-municipio');
+
+      if (nameInput && !nameInput.value) {
+        nameInput.value = profile?.name || user.displayName || '';
+      }
+      if (emailInput && !emailInput.value) {
+        emailInput.value = user.email || '';
+      }
+      if (municipioInput && !municipioInput.value && profile?.ubicacion) {
+        municipioInput.value = profile.ubicacion;
+      }
+    });
+
+    const WHATSAPP = '3229135021';
+    const form = document.getElementById('proposal-form');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const error = document.getElementById('pp-error');
+      error.textContent = '';
+
+      const nombre        = document.getElementById('pp-nombre').value.trim();
+      const email         = document.getElementById('pp-email').value.trim();
+      const telefono      = document.getElementById('pp-telefono').value.trim();
+      const municipio     = document.getElementById('pp-municipio').value.trim();
+      const titulo        = document.getElementById('pp-titulo').value.trim();
+      const categoria     = document.getElementById('pp-categoria').value;
+      const descripcion   = document.getElementById('pp-descripcion').value.trim();
+      const beneficiarios = document.getElementById('pp-beneficiarios').value.trim();
+      const recursos      = document.getElementById('pp-recursos').value.trim();
+
+      if (!nombre)      { error.textContent = 'El nombre completo es obligatorio.';      document.getElementById('pp-nombre').focus();      return; }
+      if (!email)       { error.textContent = 'El correo electrónico es obligatorio.'; document.getElementById('pp-email').focus();       return; }
+      if (!municipio)   { error.textContent = 'Indica el municipio del proyecto.';      document.getElementById('pp-municipio').focus();   return; }
+      if (!titulo)      { error.textContent = 'El nombre del proyecto es obligatorio.'; document.getElementById('pp-titulo').focus();      return; }
+      if (!categoria)   { error.textContent = 'Selecciona una categoría.';             document.getElementById('pp-categoria').focus();   return; }
+      if (!descripcion) { error.textContent = 'Describe tu idea de proyecto.';         document.getElementById('pp-descripcion').focus(); return; }
+
+      const mensaje = [
+        '🚀 *Propuesta de proyecto · Te-incluye*',
+        '',
+        `👤 *Nombre:* ${nombre}`,
+        `📧 *Correo:* ${email}`,
+        telefono      ? `📱 *Teléfono:* ${telefono}`           : null,
+        `📍 *Municipio:* ${municipio}`,
+        `📌 *Proyecto:* ${titulo}`,
+        `🏷️ *Categoría:* ${categoria}`,
+        `💡 *Descripción:* ${descripcion}`,
+        beneficiarios ? `👥 *Beneficiarios:* ${beneficiarios}` : null,
+        recursos      ? `🛠️ *Recursos necesarios:* ${recursos}` : null,
+      ].filter(Boolean).join('\n');
+
+      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    });
+  </script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Proyectos de inclusión de Corporación Te-incluye en Colombia. Iniciativas que construyen inclusión real y transforman vidas.">
+  <meta name="theme-color" content="#fafafa">
+  <title>Proyectos · Te-incluye</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link rel="apple-touch-icon" href="../assets/images/logo.png">
+  
+  <!-- Fonts + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Principal -->
+  <link rel="stylesheet" href="../assets/css/style.css">
+  
+  <!-- Preconnect a Firebase -->
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+</head>
+<body>
+  <!-- Skip Link para accesibilidad -->
+  <a href="#main" class="skip-link">
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
+  </a>
+  
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        
+        <!-- Navegación principal -->
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link active" aria-current="page">Proyectos</a>
+          <a href="recursos.html" class="nav-link">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+
+        <!-- Grupo derecho: hamburger + auth juntos -->
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Contenido Principal -->
+  <main id="main" role="main">
+    
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">Proyectos de inclusión</h1>
+          <p class="hero-subtitle">
+            Iniciativas de Corporación Te-incluye que construyen inclusión real y transforman vidas en Colombia
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Filtros de Proyectos -->
+    <section class="section" aria-labelledby="project-filters-title">
+      <div class="container">
+        <h2 id="project-filters-title" class="sr-only">Filtrar proyectos por categoría</h2>
+        <div class="filters" role="tablist">
+          <button 
+            class="filter-btn active" 
+            role="tab" 
+            aria-selected="true"
+            data-project-filter="all"
+          >
+            <i class="fas fa-th-large" aria-hidden="true"></i> Todos
+          </button>
+          <button 
+            class="filter-btn" 
+            role="tab" 
+            aria-selected="false"
+            data-project-filter="educacion"
+          >
+            <i class="fas fa-graduation-cap" aria-hidden="true"></i> Educación
+          </button>
+          <button 
+            class="filter-btn" 
+            role="tab" 
+            aria-selected="false"
+            data-project-filter="empleo"
+          >
+            <i class="fas fa-briefcase" aria-hidden="true"></i> Empleo
+          </button>
+          <button 
+            class="filter-btn" 
+            role="tab" 
+            aria-selected="false"
+            data-project-filter="salud"
+          >
+            <i class="fas fa-heart" aria-hidden="true"></i> Salud
+          </button>
+          <button 
+            class="filter-btn" 
+            role="tab" 
+            aria-selected="false"
+            data-project-filter="cultura"
+          >
+            <i class="fas fa-palette" aria-hidden="true"></i> Cultura
+          </button>
+          <button 
+            class="filter-btn" 
+            role="tab" 
+            aria-selected="false"
+            data-project-filter="deporte"
+          >
+            <i class="fas fa-futbol" aria-hidden="true"></i> Deporte
+          </button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Grid de Proyectos -->
+    <section class="section" style="padding-block-start: 0;" aria-labelledby="projects-grid-title">
+      <div class="container">
+        <h2 id="projects-grid-title" class="sr-only">Proyectos de inclusión</h2>
+        <div class="projects-grid" data-projects>
+          <!-- Skeleton loading -->
+          <article class="card project-card">
+            <div class="card-image">
+              <div class="skeleton skeleton-image" style="height: 100%;"></div>
+            </div>
+            <div class="card-body">
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text full"></div>
+            </div>
+          </article>
+          <article class="card project-card">
+            <div class="card-image">
+              <div class="skeleton skeleton-image" style="height: 100%;"></div>
+            </div>
+            <div class="card-body">
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text full"></div>
+            </div>
+          </article>
+          <article class="card project-card">
+            <div class="card-image">
+              <div class="skeleton skeleton-image" style="height: 100%;"></div>
+            </div>
+            <div class="card-body">
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text full"></div>
+            </div>
+          </article>
+        </div>
+        
+        <!-- Paginación -->
+        <nav class="pagination" aria-label="Paginación de proyectos" data-pagination>
+          <!-- Se genera dinámicamente -->
+        </nav>
+      </div>
+    </section>
+    
+    <!-- Sección: ¿Cómo participar? -->
+    <section class="section" style="background-color: var(--color-bg-secondary);" aria-labelledby="participate-title">
+      <div class="container">
+        <h2 id="participate-title" class="section-title" style="text-align: center; margin-block-end: var(--space-8);">
+          ¿Quieres participar o proponer un proyecto?
+        </h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-6);">
+          
+          <article class="card">
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-block-end: var(--space-4);">
+              <div style="width: 48px; height: 48px; border-radius: var(--border-radius-full); background: var(--color-primary-light); display: flex; align-items: center; justify-content: center; color: var(--color-primary); font-size: 1.25rem;">
+                <i class="fas fa-hand-holding-heart" aria-hidden="true"></i>
+              </div>
+              <h3 style="margin: 0; font-size: var(--font-size-lg);">Como voluntario</h3>
+            </div>
+            <p style="margin-block-end: var(--space-4);">
+              Únete a nuestros equipos de trabajo y aporta tu tiempo y talento para hacer realidad proyectos de inclusión en tu comunidad.
+            </p>
+            <a href="ser-voluntario.html" id="btn-ser-voluntario" class="btn btn-outline btn-sm">Registrarme</a>
+          </article>
+          
+          <article class="card">
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-block-end: var(--space-4);">
+              <div style="width: 48px; height: 48px; border-radius: var(--border-radius-full); background: var(--color-success-light); display: flex; align-items: center; justify-content: center; color: var(--color-success); font-size: 1.25rem;">
+                <i class="fas fa-lightbulb" aria-hidden="true"></i>
+              </div>
+              <h3 style="margin: 0; font-size: var(--font-size-lg);">Proponer iniciativa</h3>
+            </div>
+            <p style="margin-block-end: var(--space-4);">
+              ¿Tienes una idea para un proyecto de inclusión? Compártela con nosotros y evaluemos juntos cómo hacerla realidad.
+            </p>
+            <a href="proponer-proyecto.html" class="btn btn-outline btn-sm">Enviar propuesta</a>
+          </article>
+          
+          <article class="card">
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-block-end: var(--space-4);">
+              <div style="width: 48px; height: 48px; border-radius: var(--border-radius-full); background: var(--color-accent-light); display: flex; align-items: center; justify-content: center; color: var(--color-accent); font-size: 1.25rem;">
+                <i class="fas fa-handshake" aria-hidden="true"></i>
+              </div>
+              <h3 style="margin: 0; font-size: var(--font-size-lg);">Como aliado</h3>
+            </div>
+            <p style="margin-block-end: var(--space-4);">
+              Empresas, organizaciones o instituciones: únete como aliado estratégico para potenciar el impacto de nuestros proyectos.
+            </p>
+            <a href="ser-aliado.html" id="btn-ser-aliado" class="btn btn-outline btn-sm">Ser aliado</a>
+          </article>
+          
+        </div>
+      </div>
+    </section>
+    
+    <!-- Sección: Impacto -->
+    <section class="section" aria-labelledby="impact-title">
+      <div class="container">
+        <h2 id="impact-title" class="section-title" style="text-align: center; margin-block-end: var(--space-8);">
+          Impacto de nuestros proyectos
+        </h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" data-stat="projects-count">—</div>
+            <div class="stat-label">Proyectos activos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" data-stat="beneficiaries-count">—</div>
+            <div class="stat-label">Personas beneficiadas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" data-stat="municipalities-count">—</div>
+            <div class="stat-label">Comunidades impactadas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" data-stat="volunteers-count">—</div>
+            <div class="stat-label">Voluntarios comprometidos</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+  </main>
+  
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Te-incluye</h4>
+          <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">
+            Construyendo una sociedad más inclusiva, una historia a la vez.
+          </p>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Navegación</h4>
+          <ul class="footer-links">
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="galeria.html">Galería</a></li>
+            <li><a href="videos.html">Videos</a></li>
+            <li><a href="proyectos.html" aria-current="page">Proyectos</a></li>
+            <li><a href="historia.html">Historia</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Recursos</h4>
+          <ul class="footer-links">
+            <li><a href="#" target="_blank">Guías de accesibilidad</a></li>
+            <li><a href="#" target="_blank">Directorio de servicios</a></li>
+            <li><a href="admin.html">Panel administrativo</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>
+          © <span id="year"></span> Te-incluye · 
+          <a href="#" target="_blank">Licencia MIT</a> · 
+          <small>Corporación de inclusión social</small>
+        </p>
+        <p style="margin-block-start: var(--space-2);">
+          <a href="mailto:teincluye222@gmail.com" style="color: var(--color-primary); text-decoration: none;">
+            <i class="fas fa-envelope" aria-hidden="true"></i> teincluye222@gmail.com
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Scripts principales -->
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module">
+    import { db } from '../assets/js/firebase-config.js';
+    import { firestore } from '../assets/js/db.js';
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function initProjects() {
+      const container = document.querySelector('[data-projects]');
+      if (!container) return;
+
+      try {
+        let items = await firestore.getAll(firestore.collections.PROJECTS);
+        let currentFilter = 'all';
+
+        function render(filter) {
+          currentFilter = filter;
+          const filtered = filter === 'all' ? items : items.filter(p => p.category === filter);
+
+          if (!filtered.length) {
+            container.innerHTML = '<div class="empty-state" role="status"><p>No hay proyectos en esta categoría.</p></div>';
+            return;
+          }
+
+          container.innerHTML = filtered.map(p => `
+            <article class="card project-card animate-fade-in">
+              ${p.image ? `<div class="card-image"><img src="${p.image}" alt="${escapeHtml(p.title)}" loading="lazy"></div>` : ''}
+              <div class="card-body">
+                <span class="badge badge-outline">${escapeHtml(p.category || 'General')}</span>
+                <h3 class="card-title">${escapeHtml(p.title)}</h3>
+                <p class="card-description">${escapeHtml(p.description)}</p>
+                ${p.location ? `<small class="text-muted"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${escapeHtml(p.location)}</small>` : ''}
+                ${p.link ? `<a href="${p.link}" class="btn btn-outline btn-sm" target="_blank" rel="noopener" style="margin-top:var(--space-3)">Ver proyecto</a>` : ''}
+              </div>
+            </article>
+          `).join('');
+        }
+
+        render('all');
+
+        document.querySelectorAll('[data-project-filter]').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelectorAll('[data-project-filter]').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected','true');
+            render(btn.dataset.projectFilter);
+          });
+        });
+
+      } catch (err) {
+        console.error('Error cargando proyectos:', err);
+        container.innerHTML = '<div class="alert alert-error" role="alert"><p>No se pudieron cargar los proyectos.</p></div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initProjects);
+  </script>
+  
+  <script type="module">
+    import { initUserAuth } from '../assets/js/user-auth.js';
+
+    initUserAuth();
+
+    function updateAllyButton(user, profile) {
+      const btn = document.getElementById('btn-ser-aliado');
+      if (!btn) return;
+
+      if (!user) {
+        btn.href = 'login.html?mode=register&rol=aliado&next=ser-aliado.html';
+        btn.textContent = 'Ser aliado';
+        return;
+      }
+
+      btn.href = 'ser-aliado.html';
+      btn.textContent = profile?.rol === 'aliado' ? 'Gestionar alianza' : 'Ser aliado';
+    }
+
+    function updateVolunteerButton(user, profile) {
+      const btn = document.getElementById('btn-ser-voluntario');
+      if (!btn) return;
+
+      if (!user) {
+        btn.href = 'login.html?mode=register&rol=voluntario&next=ser-voluntario.html';
+        btn.textContent = 'Registrarme';
+        return;
+      }
+
+      btn.href = 'ser-voluntario.html';
+      btn.textContent = profile?.rol === 'voluntario' ? 'Gestionar voluntariado' : 'Registrarme';
+    }
+
+    document.addEventListener('auth:changed', ({ detail }) => {
+      updateAllyButton(detail.user, detail.profile);
+      updateVolunteerButton(detail.user, detail.profile);
+    });
+  </script>
+  
+  <!-- Script inline para año dinámico -->
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

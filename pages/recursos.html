@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Recursos y herramientas para personas con discapacidad en Colombia: guías, directorios, servicios y apoyo.">
+  <meta name="theme-color" content="#fafafa">
+  <title>Recursos · Te-incluye</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link rel="apple-touch-icon" href="../assets/images/logo.png">
+  
+  <!-- Fonts + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Principal -->
+  <link rel="stylesheet" href="../assets/css/style.css">
+  
+  <!-- Preconnect a Firebase -->
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+</head>
+<body>
+  <!-- Skip Link para accesibilidad -->
+  <a href="#main" class="skip-link">
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
+  </a>
+  
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        
+        <!-- Navegación principal -->
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link">Proyectos</a>
+          <a href="recursos.html" class="nav-link active" aria-current="page">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+
+        <!-- Grupo derecho: hamburger + auth juntos -->
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Contenido Principal -->
+  <main id="main" role="main">
+    
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">Recursos de apoyo</h1>
+          <p class="hero-subtitle">
+            Herramientas, guías y directorios para potenciar la inclusión y el ejercicio de derechos
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Buscador de Recursos -->
+    <section class="section" aria-labelledby="search-title">
+      <div class="container">
+        <h2 id="search-title" class="sr-only">Buscar recursos</h2>
+        <form class="search-form" role="search" aria-label="Buscar recursos">
+          <i class="fas fa-search search-icon" aria-hidden="true"></i>
+          <input 
+            type="search" 
+            class="form-input" 
+            placeholder="Buscar guías, servicios, organizaciones..."
+            aria-label="Término de búsqueda"
+            data-resource-search
+          >
+          <button type="button" class="search-clear" aria-label="Limpiar búsqueda" hidden>
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+    
+    <!-- Categorías de Recursos -->
+    <section class="section" style="padding-block-start: 0;" aria-labelledby="categories-title">
+      <div class="container">
+        <h2 id="categories-title" class="sr-only">Categorías de recursos</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
+          
+          <a href="#derechos" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+            <div style="width: 64px; height: 64px; margin-inline: auto; margin-block-end: var(--space-3); border-radius: var(--border-radius-lg); background: var(--color-primary-light); display: flex; align-items: center; justify-content: center; color: var(--color-primary); font-size: 1.5rem;">
+              <i class="fas fa-scale-balanced" aria-hidden="true"></i>
+            </div>
+            <h3 style="margin: 0; font-size: var(--font-size-base);">Derechos</h3>
+            <p style="margin: var(--space-2) 0 0; font-size: var(--font-size-sm); color: var(--color-text-muted);">Guías legales y normativas</p>
+          </a>
+          
+          <a href="#salud" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+            <div style="width: 64px; height: 64px; margin-inline: auto; margin-block-end: var(--space-3); border-radius: var(--border-radius-lg); background: var(--color-success-light); display: flex; align-items: center; justify-content: center; color: var(--color-success); font-size: 1.5rem;">
+              <i class="fas fa-heart" aria-hidden="true"></i>
+            </div>
+            <h3 style="margin: 0; font-size: var(--font-size-base);">Salud</h3>
+            <p style="margin: var(--space-2) 0 0; font-size: var(--font-size-sm); color: var(--color-text-muted);">Servicios y atención médica</p>
+          </a>
+          
+          <a href="#educacion" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+            <div style="width: 64px; height: 64px; margin-inline: auto; margin-block-end: var(--space-3); border-radius: var(--border-radius-lg); background: var(--color-accent-light); display: flex; align-items: center; justify-content: center; color: var(--color-accent); font-size: 1.5rem;">
+              <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+            </div>
+            <h3 style="margin: 0; font-size: var(--font-size-base);">Educación</h3>
+            <p style="margin: var(--space-2) 0 0; font-size: var(--font-size-sm); color: var(--color-text-muted);">Apoyos y adaptaciones</p>
+          </a>
+          
+          <a href="#empleo" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+            <div style="width: 64px; height: 64px; margin-inline: auto; margin-block-end: var(--space-3); border-radius: var(--border-radius-lg); background: var(--color-warning-light); display: flex; align-items: center; justify-content: center; color: var(--color-warning); font-size: 1.5rem;">
+              <i class="fas fa-briefcase" aria-hidden="true"></i>
+            </div>
+            <h3 style="margin: 0; font-size: var(--font-size-base);">Empleo</h3>
+            <p style="margin: var(--space-2) 0 0; font-size: var(--font-size-sm); color: var(--color-text-muted);">Oportunidades laborales</p>
+          </a>
+          
+          <a href="#tecnologia" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+            <div style="width: 64px; height: 64px; margin-inline: auto; margin-block-end: var(--space-3); border-radius: var(--border-radius-lg); background: var(--color-bg-tertiary); display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-size: 1.5rem;">
+              <i class="fas fa-laptop-code" aria-hidden="true"></i>
+            </div>
+            <h3 style="margin: 0; font-size: var(--font-size-base);">Tecnología</h3>
+            <p style="margin: var(--space-2) 0 0; font-size: var(--font-size-sm); color: var(--color-text-muted);">Herramientas digitales</p>
+          </a>
+          
+          <a href="#comunidad" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+            <div style="width: 64px; height: 64px; margin-inline: auto; margin-block-end: var(--space-3); border-radius: var(--border-radius-lg); background: var(--color-primary-light); display: flex; align-items: center; justify-content: center; color: var(--color-primary); font-size: 1.5rem;">
+              <i class="fas fa-users" aria-hidden="true"></i>
+            </div>
+            <h3 style="margin: 0; font-size: var(--font-size-base);">Comunidad</h3>
+            <p style="margin: var(--space-2) 0 0; font-size: var(--font-size-sm); color: var(--color-text-muted);">Organizaciones y redes</p>
+          </a>
+          
+        </div>
+      </div>
+    </section>
+    
+    <!-- Listado de Recursos -->
+    <section class="section" aria-labelledby="resources-list-title">
+      <div class="container">
+        <h2 id="resources-list-title" class="section-title" style="text-align: center; margin-block-end: var(--space-8);">
+          Recursos destacados
+        </h2>
+        
+        <div id="resources-list" data-resources>
+          <!-- Skeleton loading -->
+          <article class="card" style="margin-block-end: var(--space-4);">
+            <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+              <div class="skeleton skeleton-circle" style="flex-shrink: 0;"></div>
+              <div style="flex: 1;">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+                <div class="skeleton skeleton-text full"></div>
+              </div>
+            </div>
+          </article>
+          <article class="card" style="margin-block-end: var(--space-4);">
+            <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+              <div class="skeleton skeleton-circle" style="flex-shrink: 0;"></div>
+              <div style="flex: 1;">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+                <div class="skeleton skeleton-text full"></div>
+              </div>
+            </div>
+          </article>
+          <article class="card" style="margin-block-end: var(--space-4);">
+            <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+              <div class="skeleton skeleton-circle" style="flex-shrink: 0;"></div>
+              <div style="flex: 1;">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+                <div class="skeleton skeleton-text full"></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Sección: Solicitar recurso -->
+    <section class="section" style="background-color: var(--color-bg-secondary);" aria-labelledby="request-title">
+      <div class="container">
+        <div class="card" style="text-align: center; max-width: 600px; margin-inline: auto;">
+          <h2 id="request-title" class="section-title" style="margin-block-end: var(--space-3);">
+            ¿No encuentras lo que necesitas?
+          </h2>
+          <p class="section-subtitle" style="margin-block-end: var(--space-6);">
+            Si buscas un recurso específico o necesitas orientación personalizada, 
+            nuestro equipo está aquí para ayudarte.
+          </p>
+          <a href="apoyo.html" class="btn btn-primary btn-lg">
+            <i class="fas fa-comment-dots" aria-hidden="true"></i>
+            Solicitar apoyo personalizado
+          </a>
+        </div>
+      </div>
+    </section>
+    
+  </main>
+  
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Te-incluye</h4>
+          <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">
+            Construyendo una sociedad más inclusiva, una historia a la vez.
+          </p>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Navegación</h4>
+          <ul class="footer-links">
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="galeria.html">Galería</a></li>
+            <li><a href="videos.html">Videos</a></li>
+            <li><a href="proyectos.html">Proyectos</a></li>
+            <li><a href="historia.html">Historia</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Recursos</h4>
+          <ul class="footer-links">
+            <li><a href="#" target="_blank">Guías de accesibilidad</a></li>
+            <li><a href="#" target="_blank">Directorio de servicios</a></li>
+            <li><a href="admin.html">Panel administrativo</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>
+          © <span id="year"></span> Te-incluye · 
+          <a href="#" target="_blank">Licencia MIT</a> · 
+          <small>Corporación de inclusión social</small>
+        </p>
+        <p style="margin-block-start: var(--space-2);">
+          <a href="mailto:teincluye222@gmail.com" style="color: var(--color-primary); text-decoration: none;">
+            <i class="fas fa-envelope" aria-hidden="true"></i> teincluye222@gmail.com
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Scripts principales -->
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module">
+    import { init } from '../assets/js/ui/resources.js';
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  
+  <script type="module">
+    import { initUserAuth } from '../assets/js/user-auth.js';
+    initUserAuth();
+  </script>
+  
+  <!-- Script inline para año dinámico -->
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

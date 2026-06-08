@@ -108,7 +108,7 @@ body:has(.ap-layout) {
 
 /* ===== SIDEBAR FOOTER ===== */
 .ap-sidebar-footer {
-  padding: 1rem 0.75rem;
+  padding: 0.75rem;
   border-top: 1px solid var(--color-border);
   flex-shrink: 0;
 }
@@ -116,12 +116,14 @@ body:has(.ap-layout) {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0.875rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius);
+  background: var(--color-bg-surface-alt);
   margin-bottom: 0.5rem;
 }
 .ap-user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   background: var(--color-primary);
   border-radius: 50%;
   display: flex;
@@ -129,32 +131,48 @@ body:has(.ap-layout) {
   justify-content: center;
   color: white;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
 }
-.ap-user-email {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+.ap-user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ap-user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.ap-user-email {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ap-logout-btn {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.875rem;
-  border: none;
+  padding: 0.6rem 0.875rem;
+  border: 1px solid transparent;
   background: none;
   border-radius: var(--radius);
   color: var(--color-error);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   width: 100%;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
-.ap-logout-btn:hover { background: #fef2f2; }
+.ap-logout-btn:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
 
 /* ===== OVERLAY (mobile) ===== */
 .ap-overlay {
@@ -671,8 +689,95 @@ body:has(.ap-layout) {
   flex-shrink: 0;
 }
 
-/* ===== STATS EDITOR ===== */
-.ap-stat-editor-item {
+/* ===== STATS GRID (dashboard cards) ===== */
+.ap-stat-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.ap-stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.ap-stat-card .ap-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--stat-color, var(--color-primary)) 12%, transparent);
+  color: var(--stat-color, var(--color-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.ap-stat-card .ap-stat-info strong {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text-primary);
+}
+.ap-stat-card .ap-stat-info span {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ===== RECENT ITEMS ===== */
+.ap-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.12s;
+}
+.ap-recent-item:last-child { border-bottom: none; }
+.ap-recent-item:hover { background: var(--color-bg-surface-alt); }
+.ap-recent-thumb {
+  width: 48px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+  background: var(--color-bg-surface-alt);
+}
+.ap-recent-info {
+  flex: 1;
+  min-width: 0;
+}
+.ap-recent-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ap-recent-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+.ap-recent-meta small {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+.ap-recent-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1em 0.5em;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+
   display: grid;
   grid-template-columns: 1fr 80px 1fr 1fr;
   gap: 0.75rem;

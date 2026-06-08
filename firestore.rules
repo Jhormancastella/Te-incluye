@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Función helper: verificar si el usuario es admin ──────────────────
+    function isAdmin() {
+      let snap = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return request.auth != null
+        && snap != null && snap.data != null
+        && snap.data.role == 'admin';
+    }
+
+    function isBootstrapAdmin(userId) {
+      return request.auth != null
+        && request.auth.uid == userId
+        && request.auth.token.email == 'teincluye222@gmail.com';
+    }
+
+    // ── Contenido público (galería, videos, proyectos, stats, recursos) ───
+    // Lectura: cualquiera | Escritura: solo admin
+    match /galeria/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /videos/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /proyectos/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /stats/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /recursos/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Registro público (formulario de contacto) ─────────────────────────
+    // Crear: cualquiera | Leer/editar/borrar: solo admin
+    match /registry/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── Perfiles de usuario ───────────────────────────────────────────────
+    // Leer perfil propio: usuario autenticado
+    // Leer perfil ajeno: cualquiera (para mostrar nombre en comentarios, etc.)
+    // Crear: solo el propio usuario al registrarse
+    // Actualizar: solo el propio usuario (excepto el campo 'role')
+    // Borrar: solo admin
+    match /users/{userId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.uid == userId
+        && (
+          request.resource.data.role == 'user'
+          || (isBootstrapAdmin(userId) && request.resource.data.role == 'admin')
+        );
+
+      allow update: if isAdmin()
+        || (
+          request.auth != null
+          && request.auth.uid == userId
+          && !('role' in request.resource.data.diff(resource.data).affectedKeys())
+        ); // el usuario no puede cambiar su rol; admin si
+
+      allow delete: if isAdmin();
+    }
+  }
+}

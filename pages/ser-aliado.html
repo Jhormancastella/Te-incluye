@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="description" content="Únete como aliado institucional de Corporación Te-incluye. Empresas y organizaciones que potencian proyectos de inclusión.">
+  <title>Ser aliado · Te-incluye</title>
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .auth-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+    @media (max-width:480px) { .auth-form-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">
+    <i class="fas fa-arrow-down" aria-hidden="true"></i> Saltar al contenido principal
+  </a>
+
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo" aria-label="Te-incluye - Inicio">
+          <img src="../assets/images/logo.png" alt="" class="logo-img" width="40" height="40">
+          <span class="logo-text">
+            <span class="logo-title">Te-incluye</span>
+            <span class="logo-slogan">Inclusión que transforma</span>
+          </span>
+        </a>
+        <nav id="primary-nav" class="nav-primary" data-nav-menu aria-label="Navegación principal">
+          <a href="../index.html" class="nav-link">Inicio</a>
+          <a href="galeria.html" class="nav-link">Galería</a>
+          <a href="videos.html" class="nav-link">Videos</a>
+          <a href="proyectos.html" class="nav-link active" aria-current="page">Proyectos</a>
+          <a href="recursos.html" class="nav-link">Recursos</a>
+          <a href="historia.html" class="nav-link">Historia</a>
+          <button class="btn btn-ghost btn-sm" data-theme-toggle
+            aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+            <span class="toggle-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+        <div class="header-right">
+          <button class="nav-toggle" data-nav-toggle
+            aria-label="Abrir menú de navegación"
+            aria-expanded="false" aria-controls="primary-nav">
+            <span class="nav-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div id="user-widget"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="section" style="padding-block-start: 4rem;" aria-labelledby="aliado-title">
+      <div class="container">
+        <p style="text-align:center; margin-block-end: var(--space-4);">
+          <a href="proyectos.html" style="color:var(--color-primary); text-decoration:none; font-size:var(--font-size-sm);">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> Volver a Proyectos
+          </a>
+        </p>
+        <h1 id="aliado-title" class="section-title" style="text-align:center; margin-block-end: var(--space-3);">
+          Ser aliado institucional
+        </h1>
+        <p style="text-align:center; color:var(--color-text-secondary); max-width:56ch; margin:0 auto var(--space-6);">
+          Empresas, organizaciones e instituciones pueden unirse como aliados estratégicos
+          para potenciar el impacto de nuestros proyectos de inclusión.
+        </p>
+
+        <div id="aliado-status" class="alert" role="status" hidden></div>
+
+        <form id="ally-form" class="card" style="max-width:640px; margin:auto; padding:var(--space-6);" novalidate>
+          <h2 class="section-title" style="font-size:var(--font-size-lg); margin-block-end:var(--space-5);">
+            Solicitud de alianza
+          </h2>
+
+          <div class="form-group">
+            <label for="sa-organizacion" class="form-label form-label-required">Nombre de la organización</label>
+            <input type="text" id="sa-organizacion" class="form-input" required
+              placeholder="Ej. Fundación Inclusión Norte">
+          </div>
+
+          <div class="auth-form-grid">
+            <div class="form-group">
+              <label for="sa-contacto" class="form-label form-label-required">Persona de contacto</label>
+              <input type="text" id="sa-contacto" class="form-input" required autocomplete="name"
+                placeholder="Nombre del representante">
+            </div>
+            <div class="form-group">
+              <label for="sa-cargo" class="form-label">Cargo</label>
+              <input type="text" id="sa-cargo" class="form-input" placeholder="Ej. Director de RSE">
+            </div>
+          </div>
+
+          <div class="auth-form-grid">
+            <div class="form-group">
+              <label for="sa-email" class="form-label form-label-required">Correo electrónico</label>
+              <input type="email" id="sa-email" class="form-input" required autocomplete="email"
+                placeholder="contacto@organizacion.com">
+            </div>
+            <div class="form-group">
+              <label for="sa-telefono" class="form-label form-label-required">Teléfono</label>
+              <input type="tel" id="sa-telefono" class="form-input" required autocomplete="tel" placeholder="+57 ...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sa-municipio" class="form-label form-label-required">Municipio / Ciudad</label>
+            <input type="text" id="sa-municipio" class="form-input" required placeholder="Ej. Tibú">
+          </div>
+
+          <div class="form-group">
+            <label for="sa-tipo" class="form-label form-label-required">Tipo de organización</label>
+            <select id="sa-tipo" class="form-input" required>
+              <option value="">Selecciona una opción</option>
+              <option value="Empresa privada">Empresa privada</option>
+              <option value="ONG / Fundación">ONG / Fundación</option>
+              <option value="Institución educativa">Institución educativa</option>
+              <option value="Entidad pública">Entidad pública</option>
+              <option value="Cooperativa / Asociación">Cooperativa / Asociación</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="sa-colaboracion" class="form-label form-label-required">¿Cómo desean colaborar?</label>
+            <textarea id="sa-colaboracion" class="form-input" rows="4" required
+              placeholder="Recursos, patrocinio, voluntariado corporativo, espacios, conocimiento, etc."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="sa-recursos" class="form-label">Recursos o aportes que pueden ofrecer</label>
+            <textarea id="sa-recursos" class="form-input" rows="3"
+              placeholder="Detalle opcional de aportes económicos, en especie o servicios"></textarea>
+          </div>
+
+          <p id="sa-error" role="alert" style="color:var(--color-error); font-size:var(--font-size-sm); min-height:1.2em; margin-block-end:var(--space-3);"></p>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i> Enviar solicitud por WhatsApp
+          </button>
+
+          <p style="margin-block-start:var(--space-4); font-size:var(--font-size-sm); color:var(--color-text-secondary); text-align:center;">
+            Nuestro equipo revisará tu solicitud y se comunicará contigo para definir la alianza.
+          </p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Corporación Te-incluye · <small>Inclusión social</small></p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="../assets/js/theme.js"></script>
+  <script type="module" src="../assets/js/navigation.js"></script>
+  <script type="module">
+    import { initUserAuth, UserState } from '../assets/js/user-auth.js';
+
+    initUserAuth();
+
+    let authReady = false;
+
+    document.addEventListener('auth:changed', ({ detail }) => {
+      authReady = true;
+      const { user, profile } = detail;
+
+      if (!user) {
+        window.location.href = 'login.html?mode=register&rol=aliado&next=ser-aliado.html';
+        return;
+      }
+
+      const status = document.getElementById('aliado-status');
+      const contacto = document.getElementById('sa-contacto');
+      const email = document.getElementById('sa-email');
+      const municipio = document.getElementById('sa-municipio');
+
+      if (contacto && !contacto.value) contacto.value = profile?.name || user.displayName || '';
+      if (email && !email.value) email.value = user.email || '';
+      if (municipio && !municipio.value && profile?.ubicacion) municipio.value = profile.ubicacion;
+
+      if (profile?.rol === 'aliado' && status) {
+        status.hidden = false;
+        status.className = 'alert alert-success';
+        status.innerHTML = '<p><strong>Ya estás registrado como aliado institucional.</strong> Puedes enviar o actualizar tu solicitud de alianza con los datos de tu organización.</p>';
+      }
+    });
+
+    // Si auth tarda, reintentar redirección para visitantes sin sesión
+    setTimeout(() => {
+      if (!authReady && !UserState.user) {
+        window.location.href = 'login.html?mode=register&rol=aliado&next=ser-aliado.html';
+      }
+    }, 2500);
+
+    const WHATSAPP = '3229135021';
+    document.getElementById('ally-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const error = document.getElementById('sa-error');
+      error.textContent = '';
+
+      const organizacion = document.getElementById('sa-organizacion').value.trim();
+      const contacto     = document.getElementById('sa-contacto').value.trim();
+      const cargo        = document.getElementById('sa-cargo').value.trim();
+      const email        = document.getElementById('sa-email').value.trim();
+      const telefono     = document.getElementById('sa-telefono').value.trim();
+      const municipio    = document.getElementById('sa-municipio').value.trim();
+      const tipo         = document.getElementById('sa-tipo').value;
+      const colaboracion = document.getElementById('sa-colaboracion').value.trim();
+      const recursos     = document.getElementById('sa-recursos').value.trim();
+
+      if (!organizacion) { error.textContent = 'Indica el nombre de la organización.'; document.getElementById('sa-organizacion').focus(); return; }
+      if (!contacto)     { error.textContent = 'Indica la persona de contacto.';        document.getElementById('sa-contacto').focus();     return; }
+      if (!email)        { error.textContent = 'El correo electrónico es obligatorio.'; document.getElementById('sa-email').focus();        return; }
+      if (!telefono)     { error.textContent = 'El teléfono es obligatorio.';           document.getElementById('sa-telefono').focus();     return; }
+      if (!municipio)    { error.textContent = 'Indica el municipio o ciudad.';         document.getElementById('sa-municipio').focus();    return; }
+      if (!tipo)         { error.textContent = 'Selecciona el tipo de organización.';   document.getElementById('sa-tipo').focus();         return; }
+      if (!colaboracion) { error.textContent = 'Describe cómo desean colaborar.';       document.getElementById('sa-colaboracion').focus(); return; }
+
+      const mensaje = [
+        '🤝 *Solicitud de alianza · Corporación Te-incluye*',
+        '',
+        `🏢 *Organización:* ${organizacion}`,
+        `👤 *Contacto:* ${contacto}`,
+        cargo        ? `💼 *Cargo:* ${cargo}` : null,
+        `📧 *Correo:* ${email}`,
+        `📱 *Teléfono:* ${telefono}`,
+        `📍 *Ubicación:* ${municipio}`,
+        `🏷️ *Tipo:* ${tipo}`,
+        `🤲 *Colaboración:* ${colaboracion}`,
+        recursos     ? `🎁 *Aportes:* ${recursos}` : null,
+      ].filter(Boolean).join('\n');
+
+      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    });
+  </script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

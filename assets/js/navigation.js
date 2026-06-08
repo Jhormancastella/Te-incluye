@@ -1,319 +1,243 @@
 /**
- * navigation.js - Tab Navigation & Mobile Menu
- * Gestión de pestañas y menú responsive
+ * Navigation.js - Gestión de Navegación
+ * Menú móvil con overlay, tabs y skip links accesibles
  */
 
-// ===== CONSTANTS =====
-const SELECTORS = {
-  TABS: '.nav-btn',
-  HEADER_TAB_ACTIONS: '.admin-action-btn',
-  MOBILE_TABS: '.mobile-nav-btn',
-  SECTIONS: '.section',
-  MOBILE_MENU: '.mobile-menu-overlay',
-  MENU_TOGGLE: '.menu-toggle',
-  MENU_CLOSE: '.mobile-menu-close'
+const NavState = {
+  mobileMenuOpen: false,
+  currentTab: null,
+  _initialized: false
 };
 
-// ===== NAVIGATION MANAGER =====
-export const Navigation = {
-  
-  currentTab: 'inicio',
-  mobileMenuOpen: false,
-  initialized: false,
+export function initNavigation() {
+  if (NavState._initialized) return;
+  NavState._initialized = true;
+  injectMobileMenu();
+  setupMobileMenu();
+  setupTabs();
+  setupSkipLink();
+  setupSmoothScroll();
+  console.log('🧭 Navegación inicializada');
+}
 
-  isTabSection(tabId) {
-    return document.getElementById(tabId)?.classList.contains('section');
-  },
-  
-  // Initialize navigation
-  init() {
-    if (this.initialized) return this;
+/* ── Inyectar estructura del menú móvil ── */
+function injectMobileMenu() {
+  if (document.getElementById('nav-mobile-overlay')) return;
+  const inPagesDir = window.location.pathname.includes('/pages/');
+  const homeHref = inPagesDir ? '../index.html' : 'index.html';
+  const logoSrc = inPagesDir ? '../assets/images/logo.png' : 'assets/images/logo.png';
 
-    this.bindDesktopTabs();
-    this.bindHeaderTabActions();
-    this.bindMobileTabs();
-    this.bindMobileMenu();
-    this.bindKeyboardNav();
-    
-    // Set initial active tab from URL hash or default
-    const hashTab = window.location.hash.replace('#', '');
-    if (hashTab && this.isTabSection(hashTab)) {
-      this.activateTab(hashTab);
-    }
-    
-    // Handle hash changes
-    window.addEventListener('hashchange', () => {
-      const hashTab = window.location.hash.replace('#', '');
-      if (hashTab && this.isTabSection(hashTab)) {
-        this.activateTab(hashTab);
-      }
-    });
+  // Recopilar links del nav desktop
+  const desktopNav = document.querySelector('[data-nav-menu]');
+  const links = desktopNav
+    ? Array.from(desktopNav.querySelectorAll('a.nav-link'))
+    : [];
 
-    this.initialized = true;
-    
-    return this;
-  },
-  
-  // Activate a tab by ID
-  activateTab(tabId) {
-    if (!this.isTabSection(tabId)) {
-      console.warn(`Tab not found: ${tabId}`);
-      return;
-    }
-    
-    this.currentTab = tabId;
-    
-    // Update desktop buttons
-    document.querySelectorAll(SELECTORS.TABS).forEach(btn => {
-      const isActive = btn.dataset.tab === tabId;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-selected', isActive);
-    });
+  const themeToggle = desktopNav
+    ? desktopNav.querySelector('[data-theme-toggle]')
+    : null;
 
-    document.querySelectorAll(SELECTORS.HEADER_TAB_ACTIONS).forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabId);
-    });
-    
-    // Update mobile buttons
-    document.querySelectorAll(SELECTORS.MOBILE_TABS).forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabId);
-    });
-    
-    // Update sections
-    document.querySelectorAll(SELECTORS.SECTIONS).forEach(section => {
-      const isActive = section.id === tabId;
-      section.classList.toggle('active-section', isActive);
-      section.setAttribute('aria-hidden', !isActive);
-      // inert prevents focus from entering hidden sections (fixes aria-hidden + focus warning)
-      if (isActive) {
-        section.removeAttribute('inert');
-      } else {
-        section.setAttribute('inert', '');
-      }
-    });
-    
-    // Update URL hash without scroll jump
-    if (window.location.hash !== `#${tabId}`) {
-      history.replaceState(null, null, `#${tabId}`);
-    }
-    
-    // Close mobile menu if open
-    this.closeMobileMenu();
-    
-    // Scroll to top smoothly
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Dispatch event
-    document.dispatchEvent(new CustomEvent('nav:tabChanged', { detail: { tabId } }));
+  const linksHtml = links.map(a => `
+    <a href="${a.getAttribute('href')}"
+       class="nav-mobile-link${a.classList.contains('active') ? ' active' : ''}"
+       ${a.getAttribute('aria-current') ? `aria-current="${a.getAttribute('aria-current')}"` : ''}>
+      ${a.innerHTML}
+    </a>
+  `).join('');
 
-    // Mover foco al encabezado de la sección activa para evitar
-    // el warning de aria-hidden con foco retenido en sección oculta
-    const activeSection = document.getElementById(tabId);
-    if (activeSection) {
-      const heading = activeSection.querySelector('h2, h3, [tabindex="-1"]');
-      if (heading) {
-        heading.setAttribute('tabindex', '-1');
-        heading.focus({ preventScroll: true });
-      }
-    }
-  },
-  
-  // Get current tab
-  getCurrentTab() {
-    return this.currentTab;
-  },
-  
-  // ===== DESKTOP TABS =====
-  bindDesktopTabs() {
-    document.querySelectorAll(SELECTORS.TABS).forEach(btn => {
-      if (btn.dataset.navBound === 'true') return;
-      btn.dataset.navBound = 'true';
+  const overlay = document.createElement('div');
+  overlay.id = 'nav-mobile-overlay';
+  overlay.className = 'nav-mobile-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.innerHTML = `
+    <div class="nav-mobile-panel" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+      <div class="nav-mobile-header">
+        <a href="${homeHref}" class="logo" style="text-decoration:none;">
+          <img src="${logoSrc}" alt="" width="32" height="32" style="border-radius:6px;">
+          <span style="font-weight:700;color:var(--color-primary);font-size:1rem;">Te-incluye</span>
+        </a>
+        <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Cerrar menú">
+          ✕
+        </button>
+      </div>
+      <nav class="nav-mobile-links" aria-label="Navegación principal">
+        ${linksHtml}
+      </nav>
+      <div class="nav-mobile-footer">
+        <span style="font-size:0.8rem;color:var(--color-text-muted);">Inclusión que transforma</span>
+        ${themeToggle ? `<button class="btn btn-ghost btn-sm" data-theme-toggle-mobile aria-label="Cambiar tema"><span class="toggle-icon-mobile">🌙</span></button>` : ''}
+      </div>
+    </div>
+  `;
 
-      // Click handler
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.activateTab(btn.dataset.tab);
-      });
-      
-      // Keyboard navigation
-      btn.addEventListener('keydown', (e) => {
-        const tabs = Array.from(document.querySelectorAll(SELECTORS.TABS));
-        const currentIndex = tabs.indexOf(btn);
-        
-        if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          const next = tabs[(currentIndex + 1) % tabs.length];
-          next.focus();
-          this.activateTab(next.dataset.tab);
-        } else if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          const prev = tabs[(currentIndex - 1 + tabs.length) % tabs.length];
-          prev.focus();
-          this.activateTab(prev.dataset.tab);
-        } else if (e.key === 'Home') {
-          e.preventDefault();
-          tabs[0].focus();
-          this.activateTab(tabs[0].dataset.tab);
-        } else if (e.key === 'End') {
-          e.preventDefault();
-          tabs[tabs.length - 1].focus();
-          this.activateTab(tabs[tabs.length - 1].dataset.tab);
-        }
-      });
-    });
-  },
+  document.body.appendChild(overlay);
+}
 
-  bindHeaderTabActions() {
-    document.querySelectorAll(SELECTORS.HEADER_TAB_ACTIONS).forEach(btn => {
-      if (btn.dataset.navBound === 'true') return;
-      btn.dataset.navBound = 'true';
+/* ── Configurar toggle hamburguesa ── */
+function setupMobileMenu() {
+  const toggle = document.querySelector('[data-nav-toggle]');
+  const overlay = document.getElementById('nav-mobile-overlay');
+  const closeBtn = document.getElementById('nav-mobile-close');
 
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.activateTab(btn.dataset.tab);
-      });
-    });
-  },
-  
-  // ===== MOBILE TABS =====
-  bindMobileTabs() {
-    document.querySelectorAll(SELECTORS.MOBILE_TABS).forEach(btn => {
-      if (btn.dataset.navBound === 'true') return;
-      btn.dataset.navBound = 'true';
+  if (!toggle || !overlay) return;
 
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.activateTab(btn.dataset.tab);
-      });
-    });
-  },
-  
-  // ===== MOBILE MENU =====
-  bindMobileMenu() {
-    const toggle = document.querySelector(SELECTORS.MENU_TOGGLE);
-    const close = document.querySelector(SELECTORS.MENU_CLOSE);
-    const overlay = document.querySelector(SELECTORS.MOBILE_MENU);
-    
-    if (!toggle || !overlay) return;
+  const open = () => {
+    NavState.mobileMenuOpen = true;
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    // Foco al primer link
+    setTimeout(() => {
+      overlay.querySelector('.nav-mobile-link, .nav-mobile-close')?.focus();
+    }, 50);
+  };
 
-    if (toggle.dataset.menuBound === 'true') return;
-    toggle.dataset.menuBound = 'true';
-    
-    // Open menu
-    toggle.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.openMobileMenu();
-    });
-    
-    // Close menu
-    if (close) {
-      close.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.closeMobileMenu();
-      });
-    }
-    
-    // Close on overlay click
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        this.closeMobileMenu();
-      }
-    });
-    
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.mobileMenuOpen) {
-        this.closeMobileMenu();
-        toggle.focus();
-      }
-    });
-    
-    // Prevent scroll when menu is open
-    const originalOverflow = document.body.style.overflow;
-    const observer = new MutationObserver(() => {
-      if (this.mobileMenuOpen) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = originalOverflow;
-      }
-    });
-    observer.observe(overlay, { attributes: true, attributeFilter: ['class'] });
-  },
-  
-  // Open mobile menu
-  openMobileMenu() {
-    const overlay = document.querySelector(SELECTORS.MOBILE_MENU);
-    const toggle = document.querySelector(SELECTORS.MENU_TOGGLE);
-    
-    if (!overlay) return;
-    
-    overlay.classList.add('active');
-    this.mobileMenuOpen = true;
-    
-    // Update toggle state
-    if (toggle) {
-      toggle.setAttribute('aria-expanded', 'true');
-      toggle.setAttribute('aria-label', 'Cerrar menú');
-      toggle.innerHTML = '<i class="fas fa-times"></i>';
-    }
-    
-    // Focus first nav item
-    const firstNav = overlay.querySelector('.mobile-nav-btn, .mobile-nav-link');
-    if (firstNav) {
-      setTimeout(() => firstNav.focus(), 300);
-    }
-    
-    document.dispatchEvent(new CustomEvent('nav:menuOpened'));
-  },
-  
-  // Close mobile menu
-  closeMobileMenu() {
-    const overlay = document.querySelector(SELECTORS.MOBILE_MENU);
-    const toggle = document.querySelector(SELECTORS.MENU_TOGGLE);
-    
-    if (!overlay) return;
-    
-    overlay.classList.remove('active');
-    this.mobileMenuOpen = false;
-    
-    // Update toggle state
-    if (toggle) {
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.setAttribute('aria-label', 'Abrir menú');
-      toggle.innerHTML = '<i class="fas fa-bars"></i>';
-    }
-    
-    document.dispatchEvent(new CustomEvent('nav:menuClosed'));
-  },
-  
-  // Toggle mobile menu
-  toggleMobileMenu() {
-    if (this.mobileMenuOpen) {
-      this.closeMobileMenu();
-    } else {
-      this.openMobileMenu();
-    }
-  },
-  
-  // ===== KEYBOARD NAVIGATION =====
-  bindKeyboardNav() {
-    // Global keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // Skip if typing in input/textarea
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-      
-      // Alt + [1-5] to navigate tabs
-      if (e.altKey && /^[1-5]$/.test(e.key)) {
-        e.preventDefault();
-        const tabs = Array.from(document.querySelectorAll(SELECTORS.TABS));
-        const index = parseInt(e.key) - 1;
-        if (tabs[index]) {
-          this.activateTab(tabs[index].dataset.tab);
-        }
-      }
+  const close = () => {
+    NavState.mobileMenuOpen = false;
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    toggle.focus();
+  };
+
+  toggle.addEventListener('click', () => {
+    NavState.mobileMenuOpen ? close() : open();
+  });
+
+  closeBtn?.addEventListener('click', close);
+
+  // Cerrar al hacer clic en el fondo del overlay
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && NavState.mobileMenuOpen) close();
+  });
+
+  // Sincronizar toggle de tema en menú móvil
+  const mobileThemeBtn = overlay.querySelector('[data-theme-toggle-mobile]');
+  if (mobileThemeBtn) {
+    mobileThemeBtn.addEventListener('click', () => {
+      document.querySelector('[data-theme-toggle]')?.click();
+      // Actualizar icono
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      mobileThemeBtn.querySelector('.toggle-icon-mobile').textContent = isDark ? '☀️' : '🌙';
     });
   }
-};
+}
 
-// ===== EXPORT =====
-export default Navigation;
+/* ── Tabs accesibles ── */
+function setupTabs() {
+  document.querySelectorAll('[role="tablist"]').forEach(tabList => {
+    const tabs = tabList.querySelectorAll('[role="tab"]');
+    const panels = document.querySelectorAll('[role="tabpanel"]');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        activateTab(tab, tabs, panels);
+      });
+
+      tab.addEventListener('keydown', (e) => {
+        const arr = Array.from(tabs);
+        const idx = arr.indexOf(tab);
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          arr[(idx + 1) % arr.length].focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          arr[(idx - 1 + arr.length) % arr.length].focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          activateTab(tab, tabs, panels);
+        }
+      });
+    });
+  });
+}
+
+function activateTab(selected, allTabs, allPanels) {
+  const targetId = selected.getAttribute('aria-controls');
+
+  allTabs.forEach(t => {
+    t.setAttribute('aria-selected', 'false');
+    t.setAttribute('tabindex', '-1');
+    t.classList.remove('active');
+  });
+
+  allPanels.forEach(p => {
+    p.classList.add('hidden');
+    p.setAttribute('aria-hidden', 'true');
+  });
+
+  selected.setAttribute('aria-selected', 'true');
+  selected.setAttribute('tabindex', '0');
+  selected.classList.add('active');
+
+  const panel = document.getElementById(targetId);
+  if (panel) {
+    panel.classList.remove('hidden');
+    panel.setAttribute('aria-hidden', 'false');
+  }
+
+  NavState.currentTab = targetId;
+  document.dispatchEvent(new CustomEvent('tab:changed', { detail: { tabId: targetId } }));
+}
+
+/* ── Skip link ── */
+function setupSkipLink() {
+  document.querySelector('.skip-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const id = e.currentTarget.getAttribute('href')?.slice(1);
+    const target = document.getElementById(id);
+    if (target) {
+      target.setAttribute('tabindex', '-1');
+      target.focus();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
+    }
+  });
+}
+
+/* ── Smooth scroll para anclas ── */
+export function setupSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href');
+      if (href.length > 1 && !href.includes('/')) {
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, null, href);
+        }
+      }
+    });
+  });
+}
+
+export function updateActiveLink(currentPath) {
+  document.querySelectorAll('.nav-link').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === currentPath) {
+      link.setAttribute('aria-current', 'page');
+      link.classList.add('active');
+    } else {
+      link.removeAttribute('aria-current');
+      link.classList.remove('active');
+    }
+  });
+}
+
+export const NavigationAPI = { updateActiveLink, setupSmoothScroll };
+
+// Auto-inicializar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNavigation);
+} else {
+  initNavigation();
+}

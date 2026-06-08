@@ -1,1042 +1,918 @@
 /**
- * admin-panel.js - Panel de Administración Dedicado
- * Datos desde Supabase
+ * admin-panel.js
+ * Panel de administración para Incluyeme
+ * Conectado a Firebase (Auth, Firestore, Storage)
  */
 
-import { Auth } from './auth.js';
-import { Theme } from './theme.js';
-import { DBProyectos, DBRecursos, DBGaleria, DBVideos, DBContenido } from './db.js';
 import {
-  escapeHtml, showToast, generateId, confirmDialog,
-  extractYouTubeId, getYouTubeThumbnail,
-  isValidEmail, isValidUrl, exportAsJSON, importJSON, PLACEHOLDER_IMAGE
-} from './utils.js';
-import { getDefaultData } from './data-defaults.js';
+  auth, db, storage,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateEmail,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, limit, serverTimestamp, getCountFromServer,
+  ref, uploadBytes, getDownloadURL, deleteObject
+} from './firebase-config.js';
+import { firestore, handleFirebaseError } from './db.js';
+import { escapeHtml, showToast, confirmDialog, exportAsJSON, importJSON, formatDate, extractYouTubeId, getYouTubeThumbnail } from './utils.js';
 
-// ===== DATA LAYER — Supabase =====
-// Cache local para que render() sea síncrono después de cargar
-const Cache = {
-  proyectos: [], recursos: [], galeria: [], videos: [],
-  content: null,
-
-  async load() {
-    [this.proyectos, this.recursos, this.galeria, this.videos, this.content] = await Promise.all([
-      DBProyectos.getAll(),
-      DBRecursos.getAll(),
-      DBGaleria.getAll(),
-      DBVideos.getAll(),
-      DBContenido.get()
-    ]);
-  },
-
-  async reload(entity) {
-    if (entity === 'proyectos') this.proyectos = await DBProyectos.getAll();
-    if (entity === 'recursos')  this.recursos  = await DBRecursos.getAll();
-    if (entity === 'galeria')   this.galeria   = await DBGaleria.getAll();
-    if (entity === 'videos')    this.videos    = await DBVideos.getAll();
+// ── Estado global ──────────────────────────────────────────────────────────
+const AdminState = {
+  user: null,
+  profile: null,
+  role: 'guest',
+  currentSection: 'dashboard',
+  data: {
+    proyectos: [],
+    recursos: [],
+    galeria: [],
+    videos: [],
+    stats: [],
+    config: {}
   }
 };
 
-// ===== HELPERS =====
-const $  = (id) => document.getElementById(id);
-const qs = (sel, ctx = document) => ctx.querySelector(sel);
+// ── Inicialización ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  initNavigation();
+  initThemeToggle();
+  initSidebar();
+  initDashboardShortcuts();
+});
 
-const PROVIDER_LABELS = { youtube: 'YouTube', vimeo: 'Vimeo', facebook: 'Facebook' };
-const PROVIDER_COLORS = { youtube: 'ap-badge-rose', vimeo: 'ap-badge-blue', facebook: 'ap-badge-blue' };
+// ── Autenticación ──────────────────────────────────────────────────────────
+function initAuth() {
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      AdminState.user = firebaseUser;
+      AdminState.profile = await fetchProfile(firebaseUser.uid);
+      AdminState.role = AdminState.profile?.role || 'user';
 
-const GALERIA_CATS = ['Eventos', 'Infraestructura', 'Capacitación', 'Testimonios'];
-const VIDEO_CATS   = ['Tutoriales', 'Eventos', 'Testimonios', 'Institucional'];
-const PROJ_TAGS    = ['En ejecución', 'Buscando voluntarios', 'Inscripciones abiertas', 'Finalizado', 'Planificación'];
-const REC_TAGS     = ['Público', 'Privado', 'Gratuito', 'Atención presencial', 'Virtual'];
+      if (AdminState.role === 'admin') {
+        showAdminPanel();
+        loadAllData();
+      } else {
+        showAccessDenied();
+      }
+    } else {
+      AdminState.user = null;
+      AdminState.profile = null;
+      AdminState.role = 'guest';
+      showLogin();
+    }
+    document.documentElement.style.opacity = '1';
+  });
 
-function imgFallback(img) {
-  img.addEventListener('error', () => { img.src = PLACEHOLDER_IMAGE; }, { once: true });
-}
-function thumb(src) {
-  if (!src || src === 'undefined') {
-    return `<div class="ap-thumb-empty" title="Sin imagen"><i class="fas fa-image"></i></div>`;
+  // Login form
+  const loginForm = document.getElementById('apLoginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('apEmail').value.trim();
+      const password = document.getElementById('apPassword').value;
+      const errorEl = document.getElementById('apLoginError');
+      const submitBtn = document.getElementById('apLoginSubmit');
+
+      errorEl.textContent = '';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showToast('Sesión iniciada correctamente', 'success');
+      } catch (error) {
+        errorEl.textContent = handleFirebaseError(error);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-right-to-bracket"></i> Iniciar sesión';
+      }
+    });
   }
-  // Escape src for both the img and the CSS custom property (used for hover preview)
-  const safeSrc = src.replace(/'/g, '%27').replace(/"/g, '%22');
-  return `<div class="ap-thumb-wrap" style="--thumb-preview:url('${safeSrc}')">
-    <img src="${escapeHtml(src)}" class="ap-table-thumb" alt="" loading="lazy">
-  </div>`;
+
+  // Logout
+  const logoutBtn = document.getElementById('apLogoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.replace('../index.html');
+    });
+  }
+
+  // Toggle password visibility
+  const eyeBtn = document.getElementById('apEyeBtn');
+  if (eyeBtn) {
+    eyeBtn.addEventListener('click', () => {
+      const passInput = document.getElementById('apPassword');
+      const icon = eyeBtn.querySelector('i');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        passInput.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    });
+  }
 }
-// Call after inserting thumb HTML to bind error handlers
-function bindThumbFallbacks(container) {
-  container.querySelectorAll('.ap-table-thumb').forEach(img => {
-    imgFallback(img);
-    // Also update the CSS var if image fails
-    img.addEventListener('error', () => {
-      const wrap = img.closest('.ap-thumb-wrap');
-      if (wrap) wrap.style.setProperty('--thumb-preview', 'none');
-    }, { once: true });
+
+async function fetchProfile(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    return snap.exists() ? snap.data() : null;
+  } catch {
+    return null;
+  }
+}
+
+function showLogin() {
+  window.location.replace('../index.html');
+}
+
+function showAdminPanel() {
+  document.documentElement.classList.add('ap-authed');
+  const loginWrap = document.getElementById('apLoginWrap');
+  const content = document.getElementById('apContent');
+  if (loginWrap) loginWrap.style.display = 'none';
+  if (content) content.style.display = 'block';
+
+  // Mostrar info de usuario
+  const userInfo = document.getElementById('apUserInfo');
+  if (userInfo) {
+    const name = AdminState.profile?.name || AdminState.user?.email || '';
+    const email = AdminState.user?.email || '';
+    const initial = name.charAt(0).toUpperCase();
+    userInfo.innerHTML = `
+      <div class="ap-user-avatar">${escapeHtml(initial)}</div>
+      <div class="ap-user-details">
+        <span class="ap-user-name">${escapeHtml(name)}</span>
+        <span class="ap-user-email">${escapeHtml(email)}</span>
+      </div>
+    `;
+  }
+}
+
+function showAccessDenied() {
+  const loginWrap = document.getElementById('apLoginWrap');
+  if (loginWrap) {
+    loginWrap.innerHTML = `
+      <div class="ap-login-card" style="text-align:center;">
+        <i class="fas fa-shield-halved" style="font-size:3rem;color:var(--color-error);margin-bottom:1rem;"></i>
+        <h2>Acceso denegado</h2>
+        <p>No tienes permisos de administrador.</p>
+        <button class="btn" onclick="window.location.href='../index.html'">Volver al inicio</button>
+      </div>
+    `;
+  }
+}
+
+// ── Navegación ─────────────────────────────────────────────────────────────
+function initNavigation() {
+  const navItems = document.querySelectorAll('.ap-nav-item');
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const section = item.dataset.section;
+      switchSection(section);
+      navItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
   });
 }
-function badge(text, cls = 'ap-badge-gray') {
-  return `<span class="ap-badge ${cls}">${escapeHtml(String(text || ''))}</span>`;
-}
-function starBtn(id, on, entity) {
-  return `<button class="ap-action-btn star${on ? ' on' : ''}" data-id="${id}" data-entity="${entity}" data-action="star" title="${on ? 'Quitar destacado' : 'Destacar'}"><i class="fas fa-star"></i></button>`;
-}
-function editBtn(id, entity) {
-  return `<button class="ap-action-btn edit" data-id="${id}" data-entity="${entity}" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>`;
-}
-function delBtn(id, entity) {
-  return `<button class="ap-action-btn delete" data-id="${id}" data-entity="${entity}" data-action="delete" title="Eliminar"><i class="fas fa-trash"></i></button>`;
+
+function switchSection(section) {
+  AdminState.currentSection = section;
+  const sections = document.querySelectorAll('.ap-section');
+  sections.forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(`sec-${section}`);
+  if (target) target.classList.add('active');
+
+  const titleMap = {
+    dashboard: 'Dashboard',
+    contenido: 'Contenido principal',
+    proyectos: 'Proyectos',
+    recursos: 'Recursos',
+    galeria: 'Galería',
+    videos: 'Videos',
+    configuracion: 'Configuración'
+  };
+  const topbarTitle = document.getElementById('apTopbarTitle');
+  if (topbarTitle) topbarTitle.textContent = titleMap[section] || 'Panel';
+
+  // Cargar datos de la sección
+  if (section === 'dashboard') loadDashboard();
+  if (section === 'contenido') loadContenido();
+  if (section === 'proyectos') renderTable('proyectos');
+  if (section === 'recursos') renderTable('recursos');
+  if (section === 'galeria') renderTable('galeria');
+  if (section === 'videos') renderTable('videos');
+  if (section === 'configuracion') loadConfiguracion();
 }
 
-// Extrae ID de video según plataforma
-function extractVideoId(url, provider) {
-  if (!url) return '';
-  if (provider === 'youtube') return extractYouTubeId(url) || '';
-  if (provider === 'vimeo')   { const m = url.match(/vimeo\.com\/(\d+)/); return m ? m[1] : ''; }
-  if (provider === 'facebook'){ const m = url.match(/\/(\d{10,})\/?/);   return m ? m[1] : ''; }
+// ── Sidebar (mobile) ───────────────────────────────────────────────────────
+function initSidebar() {
+  const menuBtn = document.getElementById('apMenuBtn');
+  const sidebar = document.getElementById('apSidebar');
+  const closeBtn = document.getElementById('apSidebarClose');
+  const overlay = document.getElementById('apOverlay');
+
+  if (menuBtn && sidebar) {
+    menuBtn.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      overlay?.classList.add('active');
+      menuBtn.setAttribute('aria-expanded', 'true');
+    });
+  }
+  if (closeBtn && sidebar) {
+    closeBtn.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay?.classList.remove('active');
+      menuBtn?.setAttribute('aria-expanded', 'false');
+    });
+  }
+  if (overlay && sidebar) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+    });
+  }
+}
+
+// ── Tema (dark/light) ──────────────────────────────────────────────────────
+function initThemeToggle() {
+  const toggle = document.getElementById('apThemeToggle');
+  if (!toggle) return;
+
+  const saved = localStorage.getItem('admin-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('admin-theme', next);
+    updateThemeIcon(next);
+  });
+}
+
+function updateThemeIcon(theme) {
+  const toggle = document.getElementById('apThemeToggle');
+  if (!toggle) return;
+  const icon = toggle.querySelector('i');
+  if (theme === 'dark') {
+    icon.classList.replace('fa-moon', 'fa-sun');
+  } else {
+    icon.classList.replace('fa-sun', 'fa-moon');
+  }
+}
+
+// ── Cargar todos los datos ─────────────────────────────────────────────────
+async function loadAllData() {
+  try {
+    const [proyectos, recursos, galeria, videos, stats] = await Promise.all([
+      firestore.getAll(firestore.collections.PROJECTS),
+      firestore.getAll(firestore.collections.RESOURCES),
+      firestore.getAll(firestore.collections.GALLERY),
+      firestore.getAll(firestore.collections.VIDEOS),
+      firestore.getAll(firestore.collections.STATS, 'order', 'asc')
+    ]);
+
+    AdminState.data.proyectos = proyectos;
+    AdminState.data.recursos = recursos;
+    AdminState.data.galeria = galeria;
+    AdminState.data.videos = videos;
+    AdminState.data.stats = stats;
+
+    // Cargar config
+    const heroSnap = await getDoc(doc(db, 'config', 'hero'));
+    const featuredSnap = await getDoc(doc(db, 'config', 'featured'));
+    AdminState.data.config.hero = heroSnap.exists() ? heroSnap.data() : {};
+    AdminState.data.config.featured = featuredSnap.exists() ? featuredSnap.data() : {};
+
+    loadDashboard();
+  } catch (error) {
+    console.error('Error cargando datos:', error);
+    showToast('Error al cargar datos', 'error');
+  }
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+function initDashboardShortcuts() {
+  document.querySelectorAll('[data-goto]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const section = btn.dataset.goto;
+      switchSection(section);
+      document.querySelectorAll('.ap-nav-item').forEach(i => {
+        i.classList.toggle('active', i.dataset.section === section);
+      });
+    });
+  });
+}
+
+async function loadDashboard() {
+  const statsGrid = document.getElementById('apStatsGrid');
+  if (statsGrid) {
+    // Get user count (including admins) from Firestore
+    let userCount = 0;
+    try {
+      const usersSnap = await getCountFromServer(collection(db, 'users'));
+      userCount = usersSnap.data().count;
+    } catch (e) {
+      console.error('Error fetching user count:', e);
+    }
+    const stats = [
+      { icon: 'fa-user', label: 'Usuarios', value: userCount, color: '#0ea5e9' },
+      { icon: 'fa-rocket', label: 'Proyectos', value: AdminState.data.proyectos.length, color: '#3b82f6' },
+      { icon: 'fa-map-location-dot', label: 'Recursos', value: AdminState.data.recursos.length, color: '#10b981' },
+      { icon: 'fa-images', label: 'Galería', value: AdminState.data.galeria.length, color: '#8b5cf6' },
+      { icon: 'fa-video', label: 'Videos', value: AdminState.data.videos.length, color: '#f59e0b' }
+    ];
+    statsGrid.innerHTML = stats.map(s => `
+      <div class="ap-stat-card" style="--stat-color:${s.color}">
+        <div class="ap-stat-icon"><i class="fas ${s.icon}"></i></div>
+        <div class="ap-stat-info">
+          <strong>${s.value}</strong>
+          <span>${s.label}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Recientes
+  renderRecent('dashProyectos', AdminState.data.proyectos.slice(0, 3), 'proyectos');
+  renderRecent('dashGaleria', AdminState.data.galeria.slice(0, 3), 'galeria');
+  renderRecent('dashVideos', AdminState.data.videos.slice(0, 3), 'videos');
+  renderRecent('dashRecursos', AdminState.data.recursos.slice(0, 3), 'recursos');
+}
+
+function renderRecent(containerId, items, type) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!items.length) {
+    container.innerHTML = '<p class="ap-empty">Sin elementos aún</p>';
+    return;
+  }
+  container.innerHTML = items.map(item => {
+    const date = item.createdAt ? formatDate(item.createdAt) : '';
+    let thumb = '';
+    if (type === 'proyectos' && item.image) {
+      thumb = `<img src="${escapeHtml(item.image)}" alt="" class="ap-recent-thumb">`;
+    } else if (type === 'galeria' && item.image) {
+      thumb = `<img src="${escapeHtml(item.image)}" alt="" class="ap-recent-thumb">`;
+    } else if (type === 'videos') {
+      const ytId = extractYouTubeId(item.videoUrl || '');
+      const src = item.thumbnail || (ytId ? getYouTubeThumbnail(ytId) : '');
+      thumb = src ? `<img src="${escapeHtml(src)}" alt="" class="ap-recent-thumb">` : '';
+    }
+    const label = item.label || item.category || item.platform || '';
+    return `
+      <div class="ap-recent-item">
+        ${thumb}
+        <div class="ap-recent-info">
+          <span class="ap-recent-title">${escapeHtml(item.title || 'Sin título')}</span>
+          <div class="ap-recent-meta">
+            ${label ? `<span class="ap-recent-tag">${escapeHtml(label)}</span>` : ''}
+            ${date ? `<small>${date}</small>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Contenido (Hero, Banner, Stats) ────────────────────────────────────────
+function loadContenido() {
+  // Hero
+  const hero = AdminState.data.config.hero || {};
+  document.getElementById('heroTitle').value = hero.title || '';
+  document.getElementById('heroSubtitle').value = hero.subtitle || '';
+
+  // Featured
+  const featured = AdminState.data.config.featured || {};
+  document.getElementById('featuredType').value = featured.type || 'image';
+  document.getElementById('featuredEnabled').value = featured.enabled ? 'true' : 'false';
+  document.getElementById('featuredUrl').value = featured.url || '';
+  document.getElementById('featuredTitle').value = featured.title || '';
+  document.getElementById('featuredDesc').value = featured.desc || '';
+
+  // Stats
+  renderStatsEditor();
+
+  // Form listeners
+  document.getElementById('formHero').onsubmit = saveHero;
+  document.getElementById('formFeatured').onsubmit = saveFeatured;
+  document.getElementById('formStats').onsubmit = saveStats;
+}
+
+async function saveHero(e) {
+  e.preventDefault();
+  const title = document.getElementById('heroTitle').value.trim();
+  const subtitle = document.getElementById('heroSubtitle').value.trim();
+  try {
+    await setDoc(doc(db, 'config', 'hero'), { title, subtitle, updatedAt: serverTimestamp() });
+    AdminState.data.config.hero = { title, subtitle };
+    showToast('Hero guardado', 'success');
+  } catch (error) {
+    showToast(handleFirebaseError(error), 'error');
+  }
+}
+
+async function saveFeatured(e) {
+  e.preventDefault();
+  const data = {
+    type: document.getElementById('featuredType').value,
+    enabled: document.getElementById('featuredEnabled').value === 'true',
+    url: document.getElementById('featuredUrl').value.trim(),
+    title: document.getElementById('featuredTitle').value.trim(),
+    desc: document.getElementById('featuredDesc').value.trim(),
+    updatedAt: serverTimestamp()
+  };
+  try {
+    await setDoc(doc(db, 'config', 'featured'), data);
+    AdminState.data.config.featured = data;
+    showToast('Banner guardado', 'success');
+  } catch (error) {
+    showToast(handleFirebaseError(error), 'error');
+  }
+}
+
+function renderStatsEditor() {
+  const container = document.getElementById('statsEditor');
+  if (!container) return;
+  const stats = AdminState.data.stats;
+  container.innerHTML = stats.map((s, i) => `
+    <div class="ap-stat-row" data-index="${i}">
+      <input type="text" placeholder="Etiqueta" value="${escapeHtml(s.label || '')}" data-field="label">
+      <input type="number" placeholder="Valor" value="${s.value || ''}" data-field="value">
+      <input type="number" placeholder="Orden" value="${s.order || i}" data-field="order">
+      <button type="button" class="btn btn-sm btn-danger" data-remove="${i}"><i class="fas fa-trash"></i></button>
+    </div>
+  `).join('') + `
+    <button type="button" class="btn btn-sm btn-secondary" id="btnAddStat"><i class="fas fa-plus"></i> Agregar</button>
+  `;
+
+  container.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.remove);
+      AdminState.data.stats.splice(idx, 1);
+      renderStatsEditor();
+    });
+  });
+
+  document.getElementById('btnAddStat').addEventListener('click', () => {
+    AdminState.data.stats.push({ label: '', value: 0, order: AdminState.data.stats.length });
+    renderStatsEditor();
+  });
+
+  container.querySelectorAll('input').forEach(input => {
+    input.addEventListener('change', () => {
+      const row = input.closest('.ap-stat-row');
+      const idx = parseInt(row.dataset.index);
+      const field = input.dataset.field;
+      AdminState.data.stats[idx][field] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+    });
+  });
+}
+
+async function saveStats(e) {
+  e.preventDefault();
+  try {
+    const batch = [];
+    for (const stat of AdminState.data.stats) {
+      if (stat.id) {
+        batch.push(updateDoc(doc(db, 'stats', stat.id), { ...stat, updatedAt: serverTimestamp() }));
+      } else {
+        batch.push(firestore.add(firestore.collections.STATS, stat));
+      }
+    }
+    await Promise.all(batch);
+    showToast('Estadísticas guardadas', 'success');
+    const newStats = await firestore.getAll(firestore.collections.STATS, 'order', 'asc');
+    AdminState.data.stats = newStats;
+    renderStatsEditor();
+  } catch (error) {
+    showToast(handleFirebaseError(error), 'error');
+  }
+}
+
+// ── Tablas CRUD ────────────────────────────────────────────────────────────
+function renderTable(type) {
+  const tbody = document.getElementById(`tbody${capitalize(type)}`);
+  if (!tbody) return;
+  const items = AdminState.data[type];
+  const searchInput = document.getElementById(`search${capitalize(type)}`);
+
+  const render = (filtered) => {
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="10" class="ap-empty">No hay elementos</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = filtered.map(item => renderRow(type, item)).join('');
+    attachRowActions(type);
+  };
+
+  render(items);
+
+  if (searchInput) {
+    searchInput.oninput = () => {
+      const q = searchInput.value.toLowerCase();
+      const filtered = items.filter(item =>
+        (item.title || '').toLowerCase().includes(q) ||
+        (item.label || '').toLowerCase().includes(q) ||
+        (item.description || '').toLowerCase().includes(q)
+      );
+      render(filtered);
+    };
+  }
+
+  // Filter (galeria, videos)
+  const filterSelect = document.getElementById(`filter${capitalize(type)}`);
+  if (filterSelect) {
+    filterSelect.onchange = () => {
+      const val = filterSelect.value;
+      const filtered = val ? items.filter(i => i.category === val) : items;
+      render(filtered);
+    };
+  }
+
+  // Botón nuevo
+  const btnNuevoIds = {
+    proyectos: 'btnNuevoProyecto',
+    recursos: 'btnNuevoRecurso',
+    galeria: 'btnNuevaImagen',
+    videos: 'btnNuevoVideo'
+  };
+  const btnNuevo = document.getElementById(btnNuevoIds[type]);
+  if (btnNuevo) {
+    btnNuevo.onclick = () => openModal(type, null);
+  }
+}
+
+function renderRow(type, item) {
+  const id = item.id;
+  const featuredIcon = item.featured ? '<i class="fas fa-star" style="color:#f59e0b"></i>' : '<i class="fas fa-star" style="color:#d1d5db"></i>';
+  const date = item.createdAt ? formatDate(item.createdAt, 'es-CO') : '';
+
+  if (type === 'proyectos') {
+    return `
+      <tr data-id="${id}">
+        <td><img src="${escapeHtml(item.image || '')}" alt="" class="ap-thumb"></td>
+        <td>${escapeHtml(item.title || '')}</td>
+        <td>${escapeHtml(item.label || '')}</td>
+        <td>${date}</td>
+        <td>${featuredIcon}</td>
+        <td>
+          <button class="ap-action-btn" data-edit="${id}" title="Editar"><i class="fas fa-pen"></i></button>
+          <button class="ap-action-btn ap-action-btn--danger" data-delete="${id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }
+  if (type === 'recursos') {
+    return `
+      <tr data-id="${id}">
+        <td>${escapeHtml(item.title || '')}</td>
+        <td>${escapeHtml(item.label || '')}</td>
+        <td>${escapeHtml(item.address || '')}</td>
+        <td>${escapeHtml(item.phone || '')}</td>
+        <td>${escapeHtml(item.schedule || '')}</td>
+        <td>${featuredIcon}</td>
+        <td>
+          <button class="ap-action-btn" data-edit="${id}" title="Editar"><i class="fas fa-pen"></i></button>
+          <button class="ap-action-btn ap-action-btn--danger" data-delete="${id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }
+  if (type === 'galeria') {
+    return `
+      <tr data-id="${id}">
+        <td><img src="${escapeHtml(item.image || '')}" alt="" class="ap-thumb"></td>
+        <td>${escapeHtml(item.title || '')}</td>
+        <td>${escapeHtml(item.category || '')}</td>
+        <td>${escapeHtml(item.type || 'image')}</td>
+        <td>${date}</td>
+        <td>${featuredIcon}</td>
+        <td>
+          <button class="ap-action-btn" data-edit="${id}" title="Editar"><i class="fas fa-pen"></i></button>
+          <button class="ap-action-btn ap-action-btn--danger" data-delete="${id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }
+  if (type === 'videos') {
+    const thumb = item.thumbnail || (extractYouTubeId(item.videoUrl) ? getYouTubeThumbnail(extractYouTubeId(item.videoUrl)) : '');
+    return `
+      <tr data-id="${id}">
+        <td><img src="${escapeHtml(thumb)}" alt="" class="ap-thumb"></td>
+        <td>${escapeHtml(item.title || '')}</td>
+        <td>${escapeHtml(item.category || '')}</td>
+        <td>${date}</td>
+        <td>${featuredIcon}</td>
+        <td>
+          <button class="ap-action-btn" data-edit="${id}" title="Editar"><i class="fas fa-pen"></i></button>
+          <button class="ap-action-btn ap-action-btn--danger" data-delete="${id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }
   return '';
 }
 
-// ===== MODAL =====
-const Modal = {
-  _resolve: null,
-  open(title, bodyHtml, { confirmText = 'Guardar', cancelText = 'Cancelar', wide = false } = {}) {
-    $('apModalTitle').textContent = title;
-    $('apModalBody').innerHTML = bodyHtml;
-    $('apModalConfirm').textContent = confirmText;
-    $('apModalCancel').textContent = cancelText;
-    $('apModal').hidden = false;
-    $('apModalBox').classList.toggle('ap-modal-box--wide', wide);
-    document.body.style.overflow = 'hidden';
-    $('apModalBody').querySelectorAll('img').forEach(imgFallback);
-    setTimeout(() => {
-      const first = $('apModalBody').querySelector('input:not([type=checkbox]),select,textarea');
-      if (first) first.focus();
-    }, 60);
-    return new Promise(resolve => { this._resolve = resolve; });
-  },
-  close(result = false) {
-    $('apModal').hidden = true;
-    document.body.style.overflow = '';
-    if (this._resolve) { this._resolve(result); this._resolve = null; }
-  },
-  init() {
-    $('apModalClose').addEventListener('click',   () => this.close(false));
-    $('apModalCancel').addEventListener('click',  () => this.close(false));
-    $('apModalConfirm').addEventListener('click', () => this.close(true));
-    $('apModal').addEventListener('click', e => { if (e.target === $('apModal')) this.close(false); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('apModal').hidden) this.close(false); });
-  }
-};
-
-// ===== NAVIGATION =====
-const Nav = {
-  current: 'dashboard',
-  sections: ['dashboard','contenido','proyectos','recursos','galeria','videos','configuracion'],
-  titles: {
-    dashboard:'Dashboard', contenido:'Contenido principal',
-    proyectos:'Proyectos', recursos:'Recursos',
-    galeria:'Galería',     videos:'Videos', configuracion:'Configuración'
-  },
-  go(id) {
-    if (!this.sections.includes(id)) return;
-    // Reset filters when switching sections
-    if (Sections[this.current]?._filter !== undefined) Sections[this.current]._filter = '';
-    if (Sections[this.current]?._cat    !== undefined) Sections[this.current]._cat    = '';
-    this.current = id;
-    this.sections.forEach(s => {
-      const sec = $(`sec-${s}`);
-      if (sec) sec.classList.toggle('active', s === id);
-    });
-    document.querySelectorAll('.ap-nav-item').forEach(btn =>
-      btn.classList.toggle('active', btn.dataset.section === id));
-    $('apTopbarTitle').textContent = this.titles[id] || id;
-    Sections[id]?.render?.();
-  },
-  init() {
-    document.querySelectorAll('.ap-nav-item').forEach(btn =>
-      btn.addEventListener('click', () => { this.go(btn.dataset.section); if (window.innerWidth < 768) Sidebar.close(); }));
-    document.querySelectorAll('[data-goto]').forEach(btn =>
-      btn.addEventListener('click', () => this.go(btn.dataset.goto)));
-  }
-};
-
-// ===== SIDEBAR =====
-const Sidebar = {
-  open()  { $('apSidebar').classList.add('open');    $('apOverlay').classList.add('active');    $('apMenuBtn').setAttribute('aria-expanded','true');  },
-  close() { $('apSidebar').classList.remove('open'); $('apOverlay').classList.remove('active'); $('apMenuBtn').setAttribute('aria-expanded','false'); },
-  init()  {
-    $('apMenuBtn').addEventListener('click',    () => this.open());
-    $('apSidebarClose').addEventListener('click',() => this.close());
-    $('apOverlay').addEventListener('click',    () => this.close());
-  }
-};
-
-// ===== SECTIONS =====
-const Sections = {
-
-  // ── DASHBOARD ──────────────────────────────────────────────────────────────
-  dashboard: {
-    render() {
-      const p = Cache.proyectos;
-      const r = Cache.recursos;
-      const g = Cache.galeria;
-      const v = Cache.videos;
-
-      $('apStatsGrid').innerHTML = [
-        { icon:'fa-rocket',           label:'Proyectos', val:p.length, cls:'blue',   sec:'proyectos' },
-        { icon:'fa-map-location-dot', label:'Recursos',  val:r.length, cls:'green',  sec:'recursos'  },
-        { icon:'fa-images',           label:'Galería',   val:g.length, cls:'amber',  sec:'galeria'   },
-        { icon:'fa-video',            label:'Videos',    val:v.length, cls:'purple', sec:'videos'    },
-      ].map(s => `
-        <div class="ap-stat" data-goto="${s.sec}" role="button" tabindex="0" aria-label="Ir a ${s.label}">
-          <div class="ap-stat-icon ${s.cls}"><i class="fas ${s.icon}"></i></div>
-          <div><div class="ap-stat-value">${s.val}</div><div class="ap-stat-label">${s.label}</div></div>
-        </div>`).join('');
-
-      document.querySelectorAll('.ap-stat[data-goto]').forEach(el => {
-        el.addEventListener('click',   () => Nav.go(el.dataset.goto));
-        el.addEventListener('keydown', e => { if (e.key === 'Enter') Nav.go(el.dataset.goto); });
-      });
-
-      this._mini('dashProyectos', p.slice(0,5), i =>
-        `<div class="ap-mini-row">${thumb(i.image)}<div class="ap-mini-info"><strong>${escapeHtml(i.titulo)}</strong>${badge(i.tag,'ap-badge-blue')}</div></div>`);
-      this._mini('dashGaleria', g.slice(0,5), i =>
-        `<div class="ap-mini-row">${thumb(i.url)}<div class="ap-mini-info"><strong>${escapeHtml(i.titulo)}</strong>${badge(i.categoria,'ap-badge-amber')}</div></div>`);
-      this._mini('dashVideos', v.slice(0,5), i =>
-        `<div class="ap-mini-row">${thumb(i.thumbnail)}<div class="ap-mini-info"><strong>${escapeHtml(i.titulo)}</strong>${badge(PROVIDER_LABELS[i.provider]||'Video', PROVIDER_COLORS[i.provider]||'ap-badge-gray')}</div></div>`);
-      this._mini('dashRecursos', r.slice(0,5), i =>
-        `<div class="ap-mini-row"><div class="ap-mini-icon"><i class="fas fa-building"></i></div><div class="ap-mini-info"><strong>${escapeHtml(i.titulo)}</strong>${badge(i.tag,'ap-badge-green')}</div></div>`);
-
-      document.querySelectorAll('#sec-dashboard .ap-table-thumb').forEach(img => imgFallback(img));
-    },
-    _mini(id, items, fn) {
-      const el = $(id); if (!el) return;
-      el.innerHTML = items.length
-        ? `<div class="ap-mini-list">${items.map(fn).join('')}</div>`
-        : `<p class="ap-empty" style="padding:1.5rem"><i class="fas fa-inbox"></i> Sin datos</p>`;
-      el.querySelectorAll('img').forEach(img => imgFallback(img));
-    }
-  },
-
-  // ── CONTENIDO ──────────────────────────────────────────────────────────────
-  contenido: {
-    render() {
-      const c = Cache.content || getDefaultData().content;
-      $('heroTitle').value    = c.hero?.title    || '';
-      $('heroSubtitle').value = c.hero?.subtitle || '';
-      $('featuredType').value    = c.featured?.type    || 'image';
-      $('featuredEnabled').value = String(c.featured?.enabled !== false);
-      $('featuredUrl').value     = c.featured?.url     || '';
-      $('featuredTitle').value   = c.featured?.title   || '';
-      $('featuredDesc').value    = c.featured?.description || '';
-      this._renderStats(c.stats || []);
-    },
-    _renderStats(stats) {
-      $('statsEditor').innerHTML = stats.map((s, i) => `
-        <div class="ap-stat-editor-item">
-          <div class="form-group">
-            <label>Icono FA</label>
-            <input type="text" name="stat_icon_${i}" value="${escapeHtml(s.icon||'')}" placeholder="fa-rocket">
-          </div>
-          <div class="form-group">
-            <label>Valor <span style="color:var(--color-error)">*</span></label>
-            <input type="text" name="stat_value_${i}" value="${escapeHtml(s.value||'')}" placeholder="12+">
-          </div>
-          <div class="form-group">
-            <label>Etiqueta <span style="color:var(--color-error)">*</span></label>
-            <input type="text" name="stat_label_${i}" value="${escapeHtml(s.label||'')}" placeholder="Proyectos">
-          </div>
-          <div class="form-group">
-            <label>Descripción</label>
-            <input type="text" name="stat_desc_${i}" value="${escapeHtml(s.description||'')}" placeholder="Iniciativas activas">
-          </div>
-        </div>`).join('');
-    },
-    bindForms() {
-      $('formHero').addEventListener('submit', async e => {
-        e.preventDefault();
-        const c = Cache.content || getDefaultData().content;
-        const title    = $('heroTitle').value.trim();
-        const subtitle = $('heroSubtitle').value.trim();
-        if (!title) { showToast('El título del hero es obligatorio', 'error'); return; }
-        c.hero = { ...c.hero, title, subtitle };
-        await DBContenido.set(c);
-        Cache.content = c;
-        showToast('Hero guardado ✓');
-        document.dispatchEvent(new CustomEvent('content:updated'));
-      });
-
-      $('formFeatured').addEventListener('submit', async e => {
-        e.preventDefault();
-        const url = $('featuredUrl').value.trim();
-        if (url && !isValidUrl(url)) { showToast('La URL del banner no es válida', 'error'); return; }
-        const c = Cache.content || getDefaultData().content;
-        c.featured = {
-          ...c.featured,
-          type:        $('featuredType').value,
-          enabled:     $('featuredEnabled').value === 'true',
-          url,
-          title:       $('featuredTitle').value.trim(),
-          description: $('featuredDesc').value.trim()
-        };
-        await DBContenido.set(c);
-        Cache.content = c;
-        showToast('Banner guardado ✓');
-        document.dispatchEvent(new CustomEvent('content:updated'));
-      });
-
-      $('formStats').addEventListener('submit', async e => {
-        e.preventDefault();
-        const c = Cache.content || getDefaultData().content;
-        let valid = true;
-        const updated = c.stats.map((s, i) => {
-          const value = (document.querySelector(`[name="stat_value_${i}"]`)?.value || '').trim();
-          const label = (document.querySelector(`[name="stat_label_${i}"]`)?.value || '').trim();
-          if (!value || !label) { valid = false; }
-          return {
-            ...s,
-            icon:        (document.querySelector(`[name="stat_icon_${i}"]`)?.value  || s.icon).trim(),
-            value,
-            label,
-            description: (document.querySelector(`[name="stat_desc_${i}"]`)?.value  || s.description).trim(),
-          };
-        });
-        if (!valid) { showToast('Valor y etiqueta son obligatorios en cada estadística', 'error'); return; }
-        c.stats = updated;
-        await DBContenido.set(c);
-        Cache.content = c;
-        showToast('Estadísticas guardadas ✓');
-        document.dispatchEvent(new CustomEvent('content:updated'));
-      });
-    }
-  },
-
-  // ── PROYECTOS ──────────────────────────────────────────────────────────────
-  proyectos: {
-    _filter: '',
-    render() {
-      const items = Cache.proyectos;
-      const q = this._filter.toLowerCase();
-      const list = q ? items.filter(i =>
-        i.titulo.toLowerCase().includes(q) || (i.tag||'').toLowerCase().includes(q) || (i.descripcion||'').toLowerCase().includes(q)
-      ) : items;
-      const tbody = $('tbodyProyectos');
-      if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="6"><div class="ap-empty"><i class="fas fa-rocket"></i>${q ? 'Sin resultados' : 'Sin proyectos. Crea el primero.'}</div></td></tr>`;
-        return;
-      }
-      tbody.innerHTML = list.map(item => `
-        <tr>
-          <td>${thumb(item.image)}</td>
-          <td>
-            <strong>${escapeHtml(item.titulo)}</strong>
-            <br><small style="color:var(--color-text-muted)">${escapeHtml((item.descripcion||'').slice(0,70))}${item.descripcion?.length>70?'…':''}</small>
-          </td>
-          <td>${badge(item.tag,'ap-badge-blue')}</td>
-          <td>${item.fecha ? new Date(item.fecha).toLocaleDateString('es-CO') : '—'}</td>
-          <td>${starBtn(item.id, item.destacado, 'proyectos')}</td>
-          <td><div class="ap-table-actions">${editBtn(item.id,'proyectos')}${delBtn(item.id,'proyectos')}</div></td>
-        </tr>`).join('');
-      bindThumbFallbacks(tbody);
-    },
-    async openForm(id = null) {
-      const item = id ? Cache.proyectos.find(i => i.id === id) : null;
-      const tagsOpts = PROJ_TAGS.map(t => `<option value="${t}"${item?.tag===t?' selected':''}>${t}</option>`).join('');
-      const body = `
-        <div class="ap-form-grid">
-          <div class="form-group full-width">
-            <label>Título <span style="color:var(--color-error)">*</span></label>
-            <input type="text" id="mTitulo" value="${escapeHtml(item?.titulo||'')}" placeholder="Nombre del proyecto" maxlength="120">
-          </div>
-          <div class="form-group full-width">
-            <label>Descripción</label>
-            <textarea id="mDesc" rows="3" placeholder="Descripción del proyecto..." maxlength="500">${escapeHtml(item?.descripcion||'')}</textarea>
-          </div>
-          <div class="form-group">
-            <label>Etiqueta / Estado</label>
-            <select id="mTag">${tagsOpts}</select>
-          </div>
-          <div class="form-group">
-            <label>Fecha de inicio</label>
-            <input type="date" id="mFecha" value="${item?.fecha?.slice(0,10)||''}">
-          </div>
-          <div class="form-group full-width">
-            <label>URL de imagen</label>
-            <input type="url" id="mImage" value="${escapeHtml(item?.image||'')}" placeholder="https://...">
-          </div>
-          <div class="form-group full-width">
-            <label style="cursor:pointer"><input type="checkbox" id="mDestacado"${item?.destacado?' checked':''}> Mostrar en inicio como destacado</label>
-          </div>
-        </div>`;
-      const ok = await Modal.open(id ? 'Editar proyecto' : 'Nuevo proyecto', body, { wide: true });
+function attachRowActions(type) {
+  document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.dataset.edit;
+      const item = AdminState.data[type].find(i => i.id === id);
+      if (item) openModal(type, item);
+    };
+  });
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.delete;
+      const ok = await confirmDialog('¿Eliminar este elemento? Esta acción no se puede deshacer.');
       if (!ok) return;
-      const titulo = $('mTitulo').value.trim();
-      if (!titulo) { showToast('El título es obligatorio', 'error'); return; }
-      const imageUrl = $('mImage').value.trim();
-      if (imageUrl && !isValidUrl(imageUrl)) { showToast('La URL de imagen no es válida', 'error'); return; }
-      const payload = {
-        titulo,
-        descripcion: $('mDesc').value.trim(),
-        tag:         $('mTag').value,
-        fecha:       $('mFecha').value || new Date().toISOString().slice(0,10),
-        image:       imageUrl,
-        destacado:   $('mDestacado').checked
-      };
-      let result;
-      if (id) {
-        result = await DBProyectos.update(id, payload);
-        if (result) showToast('Proyecto actualizado ✓');
-      } else {
-        result = await DBProyectos.insert(payload);
-        if (result) showToast('Proyecto creado ✓');
+      try {
+        await firestore.delete(getCollectionName(type), id);
+        AdminState.data[type] = AdminState.data[type].filter(i => i.id !== id);
+        renderTable(type);
+        showToast('Elemento eliminado', 'success');
+      } catch (error) {
+        showToast(handleFirebaseError(error), 'error');
       }
-      if (!result) { showToast('Error al guardar en Supabase', 'error'); return; }
-      await Cache.reload('proyectos');
-      this.render();
-    },
-    async delete(id) {
-      const item = Cache.proyectos.find(i => i.id === id);
-      const ok = await confirmDialog(`¿Eliminar "${item?.titulo || 'este proyecto'}"? Esta acción no se puede deshacer.`, 'Eliminar proyecto');
-      if (!ok) return;
-      await DBProyectos.remove(id);
-      showToast('Proyecto eliminado');
-      await Cache.reload('proyectos');
-      this.render();
-    },
-    async toggleStar(id) {
-      const item = Cache.proyectos.find(i => i.id === id);
-      if (!item) return;
-      await DBProyectos.update(id, { destacado: !item.destacado });
-      showToast(!item.destacado ? 'Marcado como destacado ⭐' : 'Quitado de destacados');
-      await Cache.reload('proyectos');
-      this.render();
-    },
-    bindSearch() {
-      $('searchProyectos').addEventListener('input', e => { this._filter = e.target.value; this.render(); });
-      $('btnNuevoProyecto').addEventListener('click', () => this.openForm());
-    }
-  },
-
-  // ── RECURSOS ───────────────────────────────────────────────────────────────
-  recursos: {
-    _filter: '',
-    render() {
-      const items = Cache.recursos;
-      const q = this._filter.toLowerCase();
-      const list = q ? items.filter(i =>
-        i.titulo.toLowerCase().includes(q) || (i.descripcion||'').toLowerCase().includes(q) || (i.tag||'').toLowerCase().includes(q)
-      ) : items;
-      const tbody = $('tbodyRecursos');
-      if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="ap-empty"><i class="fas fa-map-location-dot"></i>${q ? 'Sin resultados' : 'Sin recursos. Crea el primero.'}</div></td></tr>`;
-        return;
-      }
-      tbody.innerHTML = list.map(item => `
-        <tr>
-          <td>
-            <strong>${escapeHtml(item.titulo)}</strong>
-            <br><small style="color:var(--color-text-muted)">${escapeHtml((item.descripcion||'').slice(0,60))}${item.descripcion?.length>60?'…':''}</small>
-          </td>
-          <td>${badge(item.tag,'ap-badge-green')}</td>
-          <td>${escapeHtml(item.direccion||'—')}</td>
-          <td>${escapeHtml(item.telefono||'—')}</td>
-          <td>${escapeHtml(item.horario||'—')}</td>
-          <td>${starBtn(item.id, item.destacado, 'recursos')}</td>
-          <td><div class="ap-table-actions">${editBtn(item.id,'recursos')}${delBtn(item.id,'recursos')}</div></td>
-        </tr>`).join('');
-    },
-    async openForm(id = null) {
-      const item = id ? Cache.recursos.find(i => i.id === id) : null;
-      const tagsOpts = REC_TAGS.map(t => `<option value="${t}"${item?.tag===t?' selected':''}>${t}</option>`).join('');
-      const body = `
-        <div class="ap-form-grid">
-          <div class="form-group full-width">
-            <label>Nombre del recurso <span style="color:var(--color-error)">*</span></label>
-            <input type="text" id="mTitulo" value="${escapeHtml(item?.titulo||'')}" placeholder="Centro de Rehabilitación..." maxlength="120">
-          </div>
-          <div class="form-group full-width">
-            <label>Descripción</label>
-            <textarea id="mDesc" rows="3" placeholder="Servicios que ofrece..." maxlength="500">${escapeHtml(item?.descripcion||'')}</textarea>
-          </div>
-          <div class="form-group">
-            <label>Tipo de servicio</label>
-            <select id="mTag">${tagsOpts}</select>
-          </div>
-          <div class="form-group">
-            <label>Dirección</label>
-            <input type="text" id="mDir" value="${escapeHtml(item?.direccion||'')}" placeholder="Calle 123 #45-67">
-          </div>
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input type="tel" id="mTel" value="${escapeHtml(item?.telefono||'')}" placeholder="+57 601 123 4567">
-          </div>
-          <div class="form-group">
-            <label>Horario de atención</label>
-            <input type="text" id="mHorario" value="${escapeHtml(item?.horario||'')}" placeholder="Lun-Vie 8:00-17:00">
-          </div>
-          <div class="form-group full-width">
-            <label style="cursor:pointer"><input type="checkbox" id="mDestacado"${item?.destacado?' checked':''}> Mostrar en inicio como destacado</label>
-          </div>
-        </div>`;
-      const ok = await Modal.open(id ? 'Editar recurso' : 'Nuevo recurso', body, { wide: true });
-      if (!ok) return;
-      const titulo = $('mTitulo').value.trim();
-      if (!titulo) { showToast('El nombre es obligatorio', 'error'); return; }
-      const payload = {
-        titulo,
-        descripcion: $('mDesc').value.trim(),
-        tag:         $('mTag').value,
-        direccion:   $('mDir').value.trim(),
-        telefono:    $('mTel').value.trim(),
-        horario:     $('mHorario').value.trim(),
-        destacado:   $('mDestacado').checked
-      };
-      let result;
-      if (id) {
-        result = await DBRecursos.update(id, payload);
-        if (result) showToast('Recurso actualizado ✓');
-      } else {
-        result = await DBRecursos.insert(payload);
-        if (result) showToast('Recurso creado ✓');
-      }
-      if (!result) { showToast('Error al guardar en Supabase', 'error'); return; }
-      await Cache.reload('recursos');
-      this.render();
-    },
-    async delete(id) {
-      const item = Cache.recursos.find(i => i.id === id);
-      const ok = await confirmDialog(`¿Eliminar "${item?.titulo || 'este recurso'}"?`, 'Eliminar recurso');
-      if (!ok) return;
-      await DBRecursos.remove(id);
-      showToast('Recurso eliminado');
-      await Cache.reload('recursos');
-      this.render();
-    },
-    async toggleStar(id) {
-      const item = Cache.recursos.find(i => i.id === id);
-      if (!item) return;
-      await DBRecursos.update(id, { destacado: !item.destacado });
-      showToast(!item.destacado ? 'Marcado como destacado ⭐' : 'Quitado de destacados');
-      await Cache.reload('recursos');
-      this.render();
-    },
-    bindSearch() {
-      $('searchRecursos').addEventListener('input', e => { this._filter = e.target.value; this.render(); });
-      $('btnNuevoRecurso').addEventListener('click', () => this.openForm());
-    }
-  },
-
-  // ── GALERÍA ────────────────────────────────────────────────────────────────
-  galeria: {
-    _filter: '', _cat: '',
-    render() {
-      const items = Cache.galeria;
-      const q = this._filter.toLowerCase();
-      const list = items.filter(i =>
-        (!q || i.titulo.toLowerCase().includes(q) || (i.descripcion||'').toLowerCase().includes(q)) &&
-        (!this._cat || i.categoria === this._cat)
-      );
-      // Sync search/filter UI
-      const si = $('searchGaleria'); if (si && si.value !== this._filter) si.value = this._filter;
-      const fi = $('filterGaleria'); if (fi && fi.value !== this._cat)    fi.value = this._cat;
-
-      const tbody = $('tbodyGaleria');
-      if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="ap-empty"><i class="fas fa-images"></i>${q||this._cat ? 'Sin resultados' : 'Sin imágenes. Agrega la primera.'}</div></td></tr>`;
-        return;
-      }
-      tbody.innerHTML = list.map(item => {
-        const isVid = item.type === 'video';
-        return `
-          <tr>
-            <td style="position:relative">
-              ${thumb(item.url)}
-              ${isVid ? '<span style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);color:#fff;border-radius:4px;padding:1px 5px;font-size:.65rem"><i class="fas fa-play"></i></span>' : ''}
-            </td>
-            <td>
-              <strong>${escapeHtml(item.titulo)}</strong>
-              <br><small style="color:var(--color-text-muted)">${escapeHtml((item.descripcion||'').slice(0,55))}${item.descripcion?.length>55?'…':''}</small>
-            </td>
-            <td>${badge(item.categoria,'ap-badge-amber')}</td>
-            <td>${isVid ? badge(PROVIDER_LABELS[item.provider]||'Video','ap-badge-purple') : badge('Imagen','ap-badge-gray')}</td>
-            <td>${item.fecha ? new Date(item.fecha).toLocaleDateString('es-CO') : '—'}</td>
-            <td>${starBtn(item.id, item.destacado, 'galeria')}</td>
-            <td><div class="ap-table-actions">${editBtn(item.id,'galeria')}${delBtn(item.id,'galeria')}</div></td>
-          </tr>`;
-      }).join('');
-      bindThumbFallbacks(tbody);
-    },
-    async openForm(id = null) {
-      const item = id ? Cache.galeria.find(i => i.id === id) : null;
-      const catOpts = GALERIA_CATS.map(c => `<option value="${c}"${item?.categoria===c?' selected':''}>${c}</option>`).join('');
-      const isVid = item?.type === 'video';
-      const body = `
-        <div class="ap-form-grid">
-          <div class="form-group full-width">
-            <label>Título <span style="color:var(--color-error)">*</span></label>
-            <input type="text" id="mTitulo" value="${escapeHtml(item?.titulo||'')}" placeholder="Título de la imagen" maxlength="120">
-          </div>
-          <div class="form-group full-width">
-            <label>Descripción</label>
-            <textarea id="mDesc" rows="2" maxlength="300">${escapeHtml(item?.descripcion||'')}</textarea>
-          </div>
-          <div class="form-group">
-            <label>Categoría</label>
-            <select id="mCat">${catOpts}</select>
-          </div>
-          <div class="form-group">
-            <label>Fecha</label>
-            <input type="date" id="mFecha" value="${item?.fecha?.slice(0,10)||''}">
-          </div>
-          <div class="form-group full-width">
-            <label>URL de imagen / thumbnail <span style="color:var(--color-error)">*</span></label>
-            <input type="url" id="mUrl" value="${escapeHtml(item?.url||'')}" placeholder="https://... o assets/images/gallery/foto.jpg">
-          </div>
-          <div class="form-group full-width">
-            <label style="cursor:pointer;font-weight:600">
-              <input type="checkbox" id="mIsVideo"${isVid?' checked':''}> Este item es un video (muestra botón play)
-            </label>
-          </div>
-          <div id="mVideoFields" style="${isVid?'':'display:none'};grid-column:1/-1">
-            <div class="ap-form-grid" style="background:var(--color-bg-surface-alt);padding:.75rem;border-radius:var(--radius);gap:.75rem">
-              <div class="form-group">
-                <label>Plataforma</label>
-                <select id="mProvider">
-                  <option value="youtube"${item?.provider==='youtube'?' selected':''}>YouTube</option>
-                  <option value="vimeo"${item?.provider==='vimeo'?' selected':''}>Vimeo</option>
-                  <option value="facebook"${item?.provider==='facebook'?' selected':''}>Facebook</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>URL completa del video <span style="color:var(--color-error)">*</span></label>
-                <input type="url" id="mVideoUrl" value="${escapeHtml(item?.video_url||item?.videoUrl||'')}" placeholder="https://youtube.com/watch?v=...">
-                <small style="color:var(--color-text-muted)">Pega la URL completa — el ID se extrae automáticamente</small>
-              </div>
-            </div>
-          </div>
-          <div class="form-group full-width">
-            <label style="cursor:pointer"><input type="checkbox" id="mDestacado"${item?.destacado?' checked':''}> Mostrar en inicio como destacado</label>
-          </div>
-        </div>`;
-      const ok = await Modal.open(id ? 'Editar imagen' : 'Nueva imagen / video', body, { wide: true });
-      if (!ok) return;
-
-      const titulo = $('mTitulo').value.trim();
-      if (!titulo) { showToast('El título es obligatorio', 'error'); return; }
-
-      const urlVal = $('mUrl').value.trim();
-      if (!urlVal) { showToast('La URL de imagen/thumbnail es obligatoria', 'error'); return; }
-      if (!isValidUrl(urlVal) && !urlVal.startsWith('assets/')) {
-        showToast('La URL de imagen no parece válida', 'error'); return;
-      }
-
-      const isVideoNow = $('mIsVideo').checked;
-      let videoId = '', videoUrl = '';
-      if (isVideoNow) {
-        const provider = $('mProvider').value;
-        videoUrl = $('mVideoUrl').value.trim();
-        if (!videoUrl) { showToast('La URL del video es obligatoria', 'error'); return; }
-        videoId = extractVideoId(videoUrl, provider);
-        if (!videoId) { showToast('No se pudo extraer el ID del video. Verifica la URL.', 'error'); return; }
-      }
-
-      const data = {
-        titulo,
-        descripcion: $('mDesc').value.trim(),
-        categoria:   $('mCat').value,
-        fecha:       $('mFecha').value || new Date().toISOString().slice(0,10),
-        url:         urlVal,
-        destacado:   $('mDestacado').checked,
-        ...(isVideoNow
-          ? { type: 'video', provider: $('mProvider').value, video_id: videoId, video_url: videoUrl }
-          : { type: null,    provider: null,                 video_id: null,    video_url: null })
-      };
-      let result;
-      if (id) {
-        result = await DBGaleria.update(id, data);
-        if (result) showToast('Imagen actualizada ✓');
-      } else {
-        result = await DBGaleria.insert(data);
-        if (result) showToast('Imagen agregada ✓');
-      }
-      if (!result) { showToast('Error al guardar en Supabase', 'error'); return; }
-      await Cache.reload('galeria');
-      this.render();
-    },
-    async delete(id) {
-      const item = Cache.galeria.find(i => i.id === id);
-      const ok = await confirmDialog(`¿Eliminar "${item?.titulo || 'esta imagen'}"?`, 'Eliminar imagen');
-      if (!ok) return;
-      await DBGaleria.remove(id);
-      showToast('Imagen eliminada');
-      await Cache.reload('galeria');
-      this.render();
-    },
-    async toggleStar(id) {
-      const item = Cache.galeria.find(i => i.id === id);
-      if (!item) return;
-      await DBGaleria.update(id, { destacado: !item.destacado });
-      showToast(!item.destacado ? 'Marcado como destacado ⭐' : 'Quitado de destacados');
-      await Cache.reload('galeria');
-      this.render();
-    },
-    bindSearch() {
-      $('searchGaleria').addEventListener('input',  e => { this._filter = e.target.value; this.render(); });
-      $('filterGaleria').addEventListener('change', e => { this._cat   = e.target.value; this.render(); });
-      $('btnNuevaImagen').addEventListener('click', () => this.openForm());
-      // Toggle video fields inside modal
-      document.addEventListener('change', e => {
-        if (e.target.id === 'mIsVideo') {
-          const vf = $('mVideoFields');
-          if (vf) vf.style.display = e.target.checked ? '' : 'none';
-        }
-      });
-    }
-  },
-
-  // ── VIDEOS ─────────────────────────────────────────────────────────────────
-  videos: {
-    _filter: '', _cat: '',
-    render() {
-      const items = Cache.videos;
-      const q = this._filter.toLowerCase();
-      const list = items.filter(i =>
-        (!q || i.titulo.toLowerCase().includes(q) || (i.descripcion||'').toLowerCase().includes(q)) &&
-        (!this._cat || i.categoria === this._cat)
-      );
-      const si = $('searchVideos'); if (si && si.value !== this._filter) si.value = this._filter;
-      const fi = $('filterVideos'); if (fi && fi.value !== this._cat)    fi.value = this._cat;
-
-      const tbody = $('tbodyVideos');
-      if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="ap-empty"><i class="fas fa-video"></i>${q||this._cat ? 'Sin resultados' : 'Sin videos. Agrega el primero.'}</div></td></tr>`;
-        return;
-      }
-      tbody.innerHTML = list.map(item => `
-        <tr>
-          <td>${thumb(item.thumbnail)}</td>
-          <td>
-            <strong>${escapeHtml(item.titulo)}</strong>
-            <br><small style="color:var(--color-text-muted)">${escapeHtml((item.descripcion||'').slice(0,55))}${item.descripcion?.length>55?'…':''}</small>
-          </td>
-          <td>${badge(PROVIDER_LABELS[item.provider]||item.provider||'—', PROVIDER_COLORS[item.provider]||'ap-badge-gray')}</td>
-          <td>${badge(item.categoria,'ap-badge-amber')}</td>
-          <td>${item.fecha ? new Date(item.fecha).toLocaleDateString('es-CO') : '—'}</td>
-          <td>${starBtn(item.id, item.destacado, 'videos')}</td>
-          <td><div class="ap-table-actions">${editBtn(item.id,'videos')}${delBtn(item.id,'videos')}</div></td>
-        </tr>`).join('');
-      bindThumbFallbacks(tbody);
-    },
-    async openForm(id = null) {
-      const item = id ? Cache.videos.find(i => i.id === id) : null;
-      const catOpts = VIDEO_CATS.map(c => `<option value="${c}"${item?.categoria===c?' selected':''}>${c}</option>`).join('');
-      const body = `
-        <div class="ap-form-grid">
-          <div class="form-group full-width">
-            <label>Título <span style="color:var(--color-error)">*</span></label>
-            <input type="text" id="mTitulo" value="${escapeHtml(item?.titulo||'')}" placeholder="Título del video" maxlength="120">
-          </div>
-          <div class="form-group full-width">
-            <label>Descripción</label>
-            <textarea id="mDesc" rows="2" maxlength="300">${escapeHtml(item?.descripcion||'')}</textarea>
-          </div>
-          <div class="form-group">
-            <label>Plataforma <span style="color:var(--color-error)">*</span></label>
-            <select id="mProvider">
-              <option value="youtube"${item?.provider==='youtube'?' selected':''}>YouTube</option>
-              <option value="vimeo"${item?.provider==='vimeo'?' selected':''}>Vimeo</option>
-              <option value="facebook"${item?.provider==='facebook'?' selected':''}>Facebook</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Categoría</label>
-            <select id="mCat">${catOpts}</select>
-          </div>
-          <div class="form-group full-width">
-            <label>URL del video <span style="color:var(--color-error)">*</span></label>
-            <input type="url" id="mVideoUrl" value="${escapeHtml(item?.video_url||item?.videoUrl||'')}" placeholder="https://youtube.com/watch?v=... · https://vimeo.com/... · URL de Facebook">
-            <small style="color:var(--color-text-muted)">Pega la URL completa — el ID se extrae automáticamente</small>
-          </div>
-          <div class="form-group full-width">
-            <label>URL de miniatura (thumbnail)</label>
-            <input type="url" id="mThumb" value="${escapeHtml(item?.thumbnail||'')}" placeholder="Opcional — se genera automáticamente para YouTube">
-          </div>
-          <div class="form-group">
-            <label>Duración (ej: 5:32)</label>
-            <input type="text" id="mDuration" value="${escapeHtml(item?.duration||'')}" placeholder="5:32" maxlength="10">
-          </div>
-          <div class="form-group">
-            <label>Fecha</label>
-            <input type="date" id="mFecha" value="${item?.fecha?.slice(0,10)||''}">
-          </div>
-          <div class="form-group full-width">
-            <label style="cursor:pointer"><input type="checkbox" id="mDestacado"${item?.destacado?' checked':''}> Mostrar en galería como destacado</label>
-          </div>
-        </div>`;
-      const ok = await Modal.open(id ? 'Editar video' : 'Nuevo video', body, { wide: true });
-      if (!ok) return;
-
-      const titulo   = $('mTitulo').value.trim();
-      const videoUrl = $('mVideoUrl').value.trim();
-      if (!titulo)   { showToast('El título es obligatorio', 'error'); return; }
-      if (!videoUrl) { showToast('La URL del video es obligatoria', 'error'); return; }
-
-      const provider = $('mProvider').value;
-      const videoId  = extractVideoId(videoUrl, provider);
-      if (!videoId) { showToast('No se pudo extraer el ID del video. Verifica la URL.', 'error'); return; }
-
-      const thumbVal  = $('mThumb').value.trim();
-      const thumbnail = thumbVal || (provider === 'youtube' ? getYouTubeThumbnail(videoId) : '');
-
-      const payload = {
-        titulo,
-        descripcion: $('mDesc').value.trim(),
-        categoria:   $('mCat').value,
-        provider,
-        video_url:   videoUrl,
-        video_id:    videoId,
-        thumbnail,
-        duration:    $('mDuration').value.trim(),
-        fecha:       $('mFecha').value || new Date().toISOString().slice(0,10),
-        destacado:   $('mDestacado').checked
-      };
-      let result;
-      if (id) {
-        result = await DBVideos.update(id, payload);
-        if (result) showToast('Video actualizado ✓');
-      } else {
-        result = await DBVideos.insert(payload);
-        if (result) showToast('Video agregado ✓');
-      }
-      if (!result) { showToast('Error al guardar en Supabase', 'error'); return; }
-      await Cache.reload('videos');
-      this.render();
-    },
-    async delete(id) {
-      const item = Cache.videos.find(i => i.id === id);
-      const ok = await confirmDialog(`¿Eliminar "${item?.titulo || 'este video'}"?`, 'Eliminar video');
-      if (!ok) return;
-      await DBVideos.remove(id);
-      showToast('Video eliminado');
-      await Cache.reload('videos');
-      this.render();
-    },
-    async toggleStar(id) {
-      const item = Cache.videos.find(i => i.id === id);
-      if (!item) return;
-      await DBVideos.update(id, { destacado: !item.destacado });
-      showToast(!item.destacado ? 'Marcado como destacado ⭐' : 'Quitado de destacados');
-      await Cache.reload('videos');
-      this.render();
-    },
-    bindSearch() {
-      $('searchVideos').addEventListener('input',  e => { this._filter = e.target.value; this.render(); });
-      $('filterVideos').addEventListener('change', e => { this._cat   = e.target.value; this.render(); });
-      $('btnNuevoVideo').addEventListener('click', () => this.openForm());
-    }
-  },
-
-  // ── CONFIGURACIÓN ──────────────────────────────────────────────────────────
-  configuracion: {
-    render() {
-      const user = Auth.getUser();
-      const hint = $('cfgCurrentEmail');
-      if (hint) hint.textContent = `Email actual: ${user?.email || '—'}`;
-    },
-    bindForms() {
-      $('formCredenciales').addEventListener('submit', async e => {
-        e.preventDefault();
-        const email   = $('cfgEmail').value.trim();
-        const pass    = $('cfgPass').value;
-        const confirm = $('cfgPassConfirm').value;
-        if (!email && !pass) { showToast('Ingresa al menos un campo para actualizar', 'warning'); return; }
-        if (email && !isValidEmail(email)) { showToast('Email inválido', 'error'); return; }
-        if (pass && pass.length < 8) { showToast('La contraseña debe tener al menos 8 caracteres', 'error'); return; }
-        if (pass && pass !== confirm) { showToast('Las contraseñas no coinciden', 'error'); return; }
-        // Actualizar en Supabase Auth
-        const { supabase } = await import('./supabase.js');
-        const updates = {};
-        if (email) updates.email    = email;
-        if (pass)  updates.password = pass;
-        const { error } = await supabase.auth.updateUser(updates);
-        if (error) { showToast('Error: ' + error.message, 'error'); return; }
-        showToast('Credenciales actualizadas ✓');
-        $('formCredenciales').reset();
-        this.render();
-      });
-
-      $('btnExport').addEventListener('click', async () => {
-        const data = {
-          exportedAt: new Date().toISOString(),
-          proyectos:  Cache.proyectos,
-          recursos:   Cache.recursos,
-          galeria:    Cache.galeria,
-          videos:     Cache.videos,
-          content:    Cache.content
-        };
-        exportAsJSON(data, `incluyeme-backup-${new Date().toISOString().slice(0,10)}.json`);
-        showToast('Backup exportado ✓');
-      });
-
-      $('btnImport').addEventListener('click', async () => {
-        try {
-          const imported = await importJSON();
-          if (!imported || typeof imported !== 'object') throw new Error('Archivo inválido');
-          const d = imported.data || imported;
-          const ops = [];
-          if (d.proyectos) d.proyectos.forEach(p => ops.push(DBProyectos.insert(p)));
-          if (d.recursos)  d.recursos.forEach(r  => ops.push(DBRecursos.insert(r)));
-          if (d.galeria)   d.galeria.forEach(g   => ops.push(DBGaleria.insert(g)));
-          if (d.videos)    d.videos.forEach(v    => ops.push(DBVideos.insert(v)));
-          if (d.content)   ops.push(DBContenido.set(d.content));
-          await Promise.all(ops);
-          showToast('Datos importados ✓ — recargando...');
-          setTimeout(() => location.reload(), 1500);
-        } catch (err) {
-          showToast('Error al importar: ' + err.message, 'error');
-        }
-      });
-
-      $('btnReset').addEventListener('click', async () => {
-        const ok = await confirmDialog(
-          'Esto borrará TODOS los cambios y restaurará los datos de ejemplo. Esta acción no se puede deshacer.',
-          '⚠️ Restaurar datos por defecto'
-        );
-        if (!ok) return;
-        showToast('Restaurar defaults no disponible con Supabase — usa el dashboard de Supabase para limpiar tablas.', 'warning');
-      });
-    }
-  }
-};
-
-// ===== DELEGATED TABLE ACTIONS =====
-function bindTableActions() {
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const { action, id, entity } = btn.dataset;
-    if (!id || !entity) return;
-    const sec = Sections[entity];
-    if (!sec) return;
-    if (action === 'edit')   sec.openForm?.(id);
-    if (action === 'delete') sec.delete?.(id);
-    if (action === 'star')   sec.toggleStar?.(id);
+    };
   });
 }
 
-// ===== AUTH UI =====
-function renderUserInfo() {
-  const user  = Auth.getUser?.() || null;
-  const email = user?.email || '—';
-  $('apUserInfo').innerHTML = `
-    <div class="ap-user-info">
-      <div class="ap-user-avatar">${escapeHtml(email[0]?.toUpperCase() || 'A')}</div>
-      <div class="ap-user-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
-    </div>`;
-}
-
-// ===== THEME TOGGLE =====
-function bindTheme() {
-  const btn = $('apThemeToggle');
-  const update = () => {
-    const dark = document.body.classList.contains('dark');
-    btn.innerHTML = `<i class="fas fa-${dark ? 'sun' : 'moon'}"></i>`;
-    btn.setAttribute('aria-label', dark ? 'Modo claro' : 'Modo oscuro');
+function getCollectionName(type) {
+  const map = {
+    proyectos: firestore.collections.PROJECTS,
+    recursos: firestore.collections.RESOURCES,
+    galeria: firestore.collections.GALLERY,
+    videos: firestore.collections.VIDEOS,
+    stats: firestore.collections.STATS
   };
-  btn.addEventListener('click', () => { Theme.toggle?.(); update(); });
-  update();
+  return map[type];
 }
 
-// ===== INJECT MINI-LIST STYLES =====
-function injectStyles() {
-  if ($('apExtraStyles')) return;
-  const s = document.createElement('style');
-  s.id = 'apExtraStyles';
-  s.textContent = `
-    .ap-mini-list { display:flex; flex-direction:column; }
-    .ap-mini-row  { display:flex; align-items:center; gap:.75rem; padding:.6rem 1.25rem; border-bottom:1px solid var(--color-border); }
-    .ap-mini-row:last-child { border-bottom:none; }
-    .ap-mini-icon { width:34px;height:34px;border-radius:var(--radius-xs);background:var(--color-bg-surface-alt);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);flex-shrink:0; }
-    .ap-mini-info { flex:1;min-width:0; }
-    .ap-mini-info strong { display:block;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-    .ap-modal-box--wide { max-width:720px; }
-    #tbodyRecursos td:nth-child(6) { text-align:center; }
-  `;
-  document.head.appendChild(s);
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// ===== INIT =====
-async function init() {
-  Theme.init();
-  injectStyles();
-  Modal.init();
-  Sidebar.init();
-  bindTheme();
-  bindTableActions();
+// ── Modal Universal ────────────────────────────────────────────────────────
+function openModal(type, item = null) {
+  const modal = document.getElementById('apModal');
+  const title = document.getElementById('apModalTitle');
+  const body = document.getElementById('apModalBody');
+  const confirmBtn = document.getElementById('apModalConfirm');
 
-  // Bind static forms
-  Sections.contenido.bindForms();
-  Sections.configuracion.bindForms();
-  Sections.proyectos.bindSearch();
-  Sections.recursos.bindSearch();
-  Sections.galeria.bindSearch();
-  Sections.videos.bindSearch();
+  const isEdit = !!item;
+  title.textContent = `${isEdit ? 'Editar' : 'Nuevo'} ${type.slice(0, -1)}`;
 
-  // Logout
-  $('apLogoutBtn').addEventListener('click', async () => {
-    const ok = await confirmDialog('¿Cerrar sesión?', 'Cerrar sesión');
+  body.innerHTML = getModalForm(type, item);
+  modal.hidden = false;
+
+  // File upload handler
+  const fileInput = body.querySelector('input[type="file"]');
+  if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const path = `${type}/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, path);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        const urlInput = body.querySelector('[data-field="image"]') || body.querySelector('[data-field="videoUrl"]');
+        if (urlInput) urlInput.value = url;
+        showToast('Archivo subido', 'success');
+      } catch (error) {
+        showToast('Error al subir: ' + handleFirebaseError(error), 'error');
+      }
+    });
+  }
+
+  confirmBtn.onclick = async () => {
+    const formData = {};
+    body.querySelectorAll('[data-field]').forEach(input => {
+      const field = input.dataset.field;
+      formData[field] = input.type === 'checkbox' ? input.checked : input.value.trim();
+    });
+
+    // Validación básica
+    if (!formData.title) {
+      showToast('El título es obligatorio', 'warning');
+      return;
+    }
+
+    try {
+      if (isEdit) {
+        await firestore.update(getCollectionName(type), item.id, formData);
+        const idx = AdminState.data[type].findIndex(i => i.id === item.id);
+        AdminState.data[type][idx] = { ...AdminState.data[type][idx], ...formData };
+      } else {
+        const newId = await firestore.add(getCollectionName(type), formData);
+        const newItem = await firestore.getById(getCollectionName(type), newId);
+        AdminState.data[type].unshift(newItem);
+      }
+      renderTable(type);
+      closeModal();
+      showToast(isEdit ? 'Cambios guardados' : 'Elemento creado', 'success');
+    } catch (error) {
+      showToast(handleFirebaseError(error), 'error');
+    }
+  };
+
+  // Cancel
+  document.getElementById('apModalCancel').onclick = closeModal;
+  document.getElementById('apModalClose').onclick = closeModal;
+}
+
+function closeModal() {
+  document.getElementById('apModal').hidden = true;
+}
+
+function getModalForm(type, item) {
+  const val = (field) => item ? (item[field] || '') : '';
+  const checked = (field) => item && item[field] ? 'checked' : '';
+
+  let fields = '';
+  if (type === 'proyectos') {
+    fields = `
+      <div class="form-group"><label>Título</label><input type="text" data-field="title" value="${escapeHtml(val('title'))}"></div>
+      <div class="form-group"><label>Descripción</label><textarea data-field="description" rows="3">${escapeHtml(val('description'))}</textarea></div>
+      <div class="form-group"><label>Etiqueta</label><input type="text" data-field="label" value="${escapeHtml(val('label'))}"></div>
+      <div class="form-group"><label>Enlace</label><input type="url" data-field="link" value="${escapeHtml(val('link'))}"></div>
+      <div class="form-group"><label>Imagen</label><input type="file" accept="image/*"><input type="text" data-field="image" value="${escapeHtml(val('image'))}" placeholder="O pega una URL"></div>
+      <div class="form-group"><label><input type="checkbox" data-field="featured" ${checked('featured')}> Destacado</label></div>
+    `;
+  } else if (type === 'recursos') {
+    fields = `
+      <div class="form-group"><label>Título</label><input type="text" data-field="title" value="${escapeHtml(val('title'))}"></div>
+      <div class="form-group"><label>Etiqueta</label><input type="text" data-field="label" value="${escapeHtml(val('label'))}"></div>
+      <div class="form-group"><label>Dirección</label><input type="text" data-field="address" value="${escapeHtml(val('address'))}"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" data-field="phone" value="${escapeHtml(val('phone'))}"></div>
+      <div class="form-group"><label>Horario</label><input type="text" data-field="schedule" value="${escapeHtml(val('schedule'))}"></div>
+      <div class="form-group"><label><input type="checkbox" data-field="featured" ${checked('featured')}> Destacado</label></div>
+    `;
+  } else if (type === 'galeria') {
+    fields = `
+      <div class="form-group"><label>Título</label><input type="text" data-field="title" value="${escapeHtml(val('title'))}"></div>
+      <div class="form-group"><label>Descripción (alt)</label><input type="text" data-field="alt" value="${escapeHtml(val('alt'))}"></div>
+      <div class="form-group"><label>Categoría</label>
+        <select data-field="category">
+          <option value="Eventos" ${val('category')==='Eventos'?'selected':''}>Eventos</option>
+          <option value="Infraestructura" ${val('category')==='Infraestructura'?'selected':''}>Infraestructura</option>
+          <option value="Capacitación" ${val('category')==='Capacitación'?'selected':''}>Capacitación</option>
+          <option value="Testimonios" ${val('category')==='Testimonios'?'selected':''}>Testimonios</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Imagen</label><input type="file" accept="image/*"><input type="text" data-field="image" value="${escapeHtml(val('image'))}" placeholder="O pega una URL"></div>
+      <div class="form-group"><label><input type="checkbox" data-field="featured" ${checked('featured')}> Destacado</label></div>
+    `;
+  } else if (type === 'videos') {
+    fields = `
+      <div class="form-group"><label>Título</label><input type="text" data-field="title" value="${escapeHtml(val('title'))}"></div>
+      <div class="form-group"><label>Descripción</label><textarea data-field="description" rows="2">${escapeHtml(val('description'))}</textarea></div>
+      <div class="form-group"><label>URL del video (YouTube)</label><input type="url" data-field="videoUrl" value="${escapeHtml(val('videoUrl'))}"></div>
+      <div class="form-group"><label>Categoría</label>
+        <select data-field="category">
+          <option value="Educación" ${val('category')==='Educación'?'selected':''}>Educación</option>
+          <option value="Deportes" ${val('category')==='Deportes'?'selected':''}>Deportes</option>
+          <option value="Salud" ${val('category')==='Salud'?'selected':''}>Salud</option>
+          <option value="Empleo" ${val('category')==='Empleo'?'selected':''}>Empleo</option>
+          <option value="Eventos" ${val('category')==='Eventos'?'selected':''}>Eventos</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Miniatura (opcional)</label><input type="text" data-field="thumbnail" value="${escapeHtml(val('thumbnail'))}" placeholder="URL de miniatura"></div>
+      <div class="form-group"><label><input type="checkbox" data-field="featured" ${checked('featured')}> Destacado</label></div>
+    `;
+  }
+  return `<form class="ap-form" id="modalForm">${fields}</form>`;
+}
+
+// ── Configuración ──────────────────────────────────────────────────────────
+function loadConfiguracion() {
+  const cfgEmail = document.getElementById('cfgCurrentEmail');
+  if (cfgEmail && AdminState.user) {
+    cfgEmail.textContent = `Email actual: ${AdminState.user.email}`;
+  }
+
+  document.getElementById('formCredenciales').onsubmit = saveCredentials;
+  document.getElementById('btnExport').onclick = exportData;
+  document.getElementById('btnImport').onclick = importData;
+  document.getElementById('btnReset').onclick = resetDefaults;
+}
+
+async function saveCredentials(e) {
+  e.preventDefault();
+  const newEmail = document.getElementById('cfgEmail').value.trim();
+  const newPass = document.getElementById('cfgPass').value;
+  const confirmPass = document.getElementById('cfgPassConfirm').value;
+
+  if (newPass && newPass !== confirmPass) {
+    showToast('Las contraseñas no coinciden', 'warning');
+    return;
+  }
+
+  // Para cambiar email o contraseña, Firebase requiere reautenticación
+  const currentPass = prompt('Ingresa tu contraseña actual para confirmar los cambios:');
+  if (!currentPass) return;
+
+  try {
+    const credential = EmailAuthProvider.credential(AdminState.user.email, currentPass);
+    await reauthenticateWithCredential(AdminState.user, credential);
+
+    if (newEmail && newEmail !== AdminState.user.email) {
+      await updateEmail(AdminState.user, newEmail);
+      await updateDoc(doc(db, 'users', AdminState.user.uid), { email: newEmail.toLowerCase() });
+    }
+    if (newPass) {
+      await updatePassword(AdminState.user, newPass);
+    }
+    showToast('Credenciales actualizadas', 'success');
+    document.getElementById('formCredenciales').reset();
+  } catch (error) {
+    showToast(handleFirebaseError(error), 'error');
+  }
+}
+
+async function exportData() {
+  try {
+    const data = {
+      proyectos: AdminState.data.proyectos,
+      recursos: AdminState.data.recursos,
+      galeria: AdminState.data.galeria,
+      videos: AdminState.data.videos,
+      stats: AdminState.data.stats,
+      config: AdminState.data.config,
+      exportedAt: new Date().toISOString()
+    };
+    exportAsJSON(data, `incluyeme-backup-${Date.now()}.json`);
+    showToast('Datos exportados', 'success');
+  } catch (error) {
+    showToast('Error al exportar', 'error');
+  }
+}
+
+async function importData() {
+  try {
+    const data = await importJSON();
+    const ok = await confirmDialog('¿Importar estos datos? Se sobrescribirán los datos actuales.');
     if (!ok) return;
-    await Auth.logout();
-    window.location.href = 'index.html';
-  });
 
-  // Load Supabase session first, then check auth
-  await Auth.loadSession();
-
-  const showPanel = async () => {
-    $('apLoginWrap').hidden = true;
-    $('apContent').hidden   = false;
-    $('apLogoutBtn').style.display = '';
-    // Cargar todos los datos desde Supabase antes de renderizar
-    await Cache.load();
-    renderUserInfo();
-    Nav.init();
-    Nav.go('dashboard');
-  };
-
-  if (Auth.isAuthenticated()) {
-    showPanel();
-  } else {
-    $('apLoginWrap').hidden = false;
-    $('apContent').hidden   = true;
-    $('apLogoutBtn').style.display = 'none';
-
-    $('apLoginForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const email = $('apEmail').value.trim();
-      const pass  = $('apPassword').value;
-      const errEl = $('apLoginError');
-      const btn   = $('apLoginSubmit');
-      errEl.textContent = '';
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
-      const ok = await Auth.login(email, pass);
-      if (ok) {
-        btn.innerHTML = '<i class="fas fa-check"></i> Acceso concedido';
-        setTimeout(showPanel, 400);
-      } else {
-        errEl.textContent = 'Email o contraseña incorrectos.';
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-right-to-bracket"></i> Iniciar sesión';
+    // Importar cada colección
+    for (const [key, items] of Object.entries(data)) {
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const { id, ...rest } = item;
+          if (id) {
+            await setDoc(doc(db, getCollectionName(key) || key, id), rest);
+          } else {
+            await firestore.add(getCollectionName(key) || key, rest);
+          }
+        }
+      } else if (key === 'config') {
+        for (const [docId, docData] of Object.entries(items)) {
+          await setDoc(doc(db, 'config', docId), docData);
+        }
       }
-    });
-
-    $('apEyeBtn').addEventListener('click', () => {
-      const inp  = $('apPassword');
-      const icon = $('apEyeBtn').querySelector('i');
-      if (inp.type === 'password') { inp.type = 'text';     icon.className = 'fas fa-eye-slash'; }
-      else                         { inp.type = 'password'; icon.className = 'fas fa-eye'; }
-    });
+    }
+    showToast('Datos importados. Recargando...', 'success');
+    setTimeout(() => location.reload(), 1500);
+  } catch (error) {
+    showToast('Error al importar: ' + error.message, 'error');
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+async function resetDefaults() {
+  const ok = await confirmDialog('¿Restaurar valores por defecto? Se borrarán todos los datos personalizados.');
+  if (!ok) return;
+
+  try {
+    // Borrar todas las colecciones
+    const collections = [
+      firestore.collections.PROJECTS,
+      firestore.collections.RESOURCES,
+      firestore.collections.GALLERY,
+      firestore.collections.VIDEOS,
+      firestore.collections.STATS
+    ];
+    for (const col of collections) {
+      const items = await firestore.getAll(col);
+      for (const item of items) {
+        await firestore.delete(col, item.id);
+      }
+    }
+    // Borrar config
+    await deleteDoc(doc(db, 'config', 'hero'));
+    await deleteDoc(doc(db, 'config', 'featured'));
+
+    showToast('Datos restaurados. Recargando...', 'success');
+    setTimeout(() => location.reload(), 1500);
+  } catch (error) {
+    showToast(handleFirebaseError(error), 'error');
+  }
+}
